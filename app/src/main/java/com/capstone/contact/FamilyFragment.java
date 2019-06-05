@@ -43,7 +43,7 @@ public class FamilyFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        id = auth.getCurrentUser().getUid();
+        id = auth.getInstance().getCurrentUser().getUid();
         databaseContacts = FirebaseDatabase.getInstance().getReference("Contacts");
         searchDetails =  FirebaseDatabase.getInstance().getReference("Contacts").child(id);
     }

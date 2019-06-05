@@ -74,7 +74,7 @@ public class MessageActivity extends AppCompatActivity {
                 Date c = Calendar.getInstance().getTime();
                 SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                 String presentDate = df.format(c);
-                databaseMessage = FirebaseDatabase.getInstance().getReference("Messages").child(uid).child(cid);
+                databaseMessage = FirebaseDatabase.getInstance().getReference().child("Messages").child(uid).child(cid);
                 String pushId = databaseMessage.push().getKey();
                 String msg = message.getText().toString().trim();
                 String sub = subject.getText().toString().trim();

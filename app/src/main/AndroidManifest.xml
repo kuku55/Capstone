@@ -49,7 +49,6 @@
         <activity android:name="com.capstone.login.SignUpActivity" />
         <activity android:name="com.capstone.user.UserDetailsActivity" />
         <activity android:name="com.capstone.contact.EmergencyContactsActivity" />
-        <activity android:name="com.capstone.TrackActivity" />
         <activity android:name="com.capstone.message.MessageActivity" />
         <activity android:name="com.capstone.login.MainActivity">
             <intent-filter>
@@ -69,7 +68,6 @@
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
-        <activity android:name="com.capstone.message.InboxActivity" />
         <activity android:name="com.capstone.message.ViewMessageActivity" />
     </application>
 

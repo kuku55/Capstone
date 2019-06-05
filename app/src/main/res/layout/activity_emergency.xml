@@ -26,7 +26,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
+            <com.mikhaellopez.circularimageview.CircularImageView
                 android:id="@+id/imageView2"
                 android:layout_width="270dp"
                 android:layout_height="match_parent"
@@ -36,7 +36,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/lblName"
@@ -46,7 +47,7 @@
                     android:text="@string/UserName"
                     android:textAllCaps="true"
                     android:textColor="@color/white"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -56,7 +57,7 @@
                     android:gravity="center"
                     android:text="@string/Age"
                     android:textColor="@color/white"
-                    android:textSize="12sp" />
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/lblGender"
@@ -65,16 +66,16 @@
                     android:gravity="center"
                     android:text="@string/Gender"
                     android:textColor="@color/white"
-                    android:textSize="12sp" />
+                    android:textSize="20sp" />
 
                 <TextView
                     android:id="@+id/lblAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="@string/Gender"
+                    android:text="@string/email"
                     android:textColor="@color/white"
-                    android:textSize="12sp" />
+                    android:textSize="20sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -131,14 +132,18 @@
     </LinearLayout>
     </LinearLayout>
 
-
     <android.support.design.widget.NavigationView
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         app:menu="@menu/navigation_menu"
         android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header"
-        android:id="@+id/nv">
+        android:paddingTop="20dp"
+        android:background="@color/title"
+        app:itemIconTint="@color/quantum_grey"
+        app:itemTextColor="@color/quantum_grey"
+        app:itemTextAppearance="@style/TextAppearance.AppCompat.Subhead"
+        android:id="@+id/nv"
+        app:theme="@style/Drawer.Custom.Dark">
 
     </android.support.design.widget.NavigationView>
 

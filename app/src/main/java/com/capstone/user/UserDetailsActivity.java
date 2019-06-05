@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -30,6 +33,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -48,9 +52,9 @@ public class UserDetailsActivity extends AppCompatActivity {
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private String id;
     private DatabaseReference databaseUser;
-    private TextView inputFirstname, inputLastname, inputAge, inputGender, inputNumber, inputEmail;
+    private TextView inputFullName, inputAge, inputGender, inputNumber, inputEmail;
     private final static int GALLERY_REQ = 1;
-    private ImageView imageView;
+    private CircularImageView imageView;
     private Uri uri = null;
     ProgressBar progressBar;
 
@@ -59,13 +63,12 @@ public class UserDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_details);
         setTitle("My Profile");
-        inputFirstname = findViewById(R.id.txtFName);
-        inputLastname = findViewById(R.id.txtLName);
+        inputFullName = findViewById(R.id.txtFullName);
         inputAge = findViewById(R.id.txtAge);
         inputGender = findViewById(R.id.txtGender);
         inputNumber = findViewById(R.id.txtContactNumber);
         inputEmail = findViewById(R.id.txtEMail);
-        imageView = findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imageProfile);
         auth = FirebaseAuth.getInstance();
         id = auth.getCurrentUser().getUid();
         databaseUser = FirebaseDatabase.getInstance().getReference("Users").child(id);
@@ -82,20 +85,13 @@ public class UserDetailsActivity extends AppCompatActivity {
                 }
             }
         };
-        inputFirstname.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                showUpdateFNameDialog(id);
-                return true;
-            }
-        });
-        inputLastname.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                showUpdateLNameDialog(id);
-                return true;
-            }
-        });
+//        inputFullName.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                showUpdateLNameDialog(id);
+//                return true;
+//            }
+//        });
         inputAge.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -114,6 +110,18 @@ public class UserDetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 showImageChooser();
+            }
+        });
+
+        final CircularImageView image = (CircularImageView) findViewById(R.id.imageProfile);
+        final CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbar);
+        ((AppBarLayout) findViewById(R.id.app_bar_layout)).addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                int min_height = ViewCompat.getMinimumHeight(collapsingToolbar) * 2;
+                float scale = (float) (min_height + verticalOffset) / min_height;
+                image.setScaleX(scale >= 0 ? scale : 0);
+                image.setScaleY(scale >= 0 ? scale : 0);
             }
         });
 
@@ -146,32 +154,32 @@ public class UserDetailsActivity extends AppCompatActivity {
         });
     }
 
-    private void showUpdateLNameDialog(final String userId) {
-
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        final View dialogView = inflater.inflate(R.layout.updatelname_dialog, null);
-        dialogBuilder.setView(dialogView);
-
-        final EditText editTextName = (EditText) dialogView.findViewById(R.id.editField);
-        final Button buttonUpdate = (Button) dialogView.findViewById(R.id.btnUpdate);
-
-        dialogBuilder.setTitle("Edit Last Name");
-        final AlertDialog b = dialogBuilder.create();
-        b.show();
-
-
-        buttonUpdate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String name = editTextName.getText().toString().trim();
-                if (!TextUtils.isEmpty(name)) {
-                    updateLastName(userId, name);
-                    b.dismiss();
-                }
-            }
-        });
-    }
+//    private void showUpdateLNameDialog(final String userId) {
+//
+//        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+//        LayoutInflater inflater = getLayoutInflater();
+//        final View dialogView = inflater.inflate(R.layout.updatelname_dialog, null);
+//        dialogBuilder.setView(dialogView);
+//
+//        final EditText editTextName = (EditText) dialogView.findViewById(R.id.editField);
+//        final Button buttonUpdate = (Button) dialogView.findViewById(R.id.btnUpdate);
+//
+//        dialogBuilder.setTitle("Edit Last Name");
+//        final AlertDialog b = dialogBuilder.create();
+//        b.show();
+//
+//
+//        buttonUpdate.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                String name = editTextName.getText().toString().trim();
+//                if (!TextUtils.isEmpty(name)) {
+//                    updateLastName(userId, name);
+//                    b.dismiss();
+//                }
+//            }
+//        });
+//    }
 
     private boolean updateFirstName(String id, String name) {
         DatabaseReference dR = FirebaseDatabase.getInstance().getReference("Users").child(id).child("userFirstName");
@@ -198,8 +206,7 @@ public class UserDetailsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
-                inputFirstname.setText(getString(R.string.update_fname, user.getUserFirstName()));
-                inputLastname.setText(getString(R.string.update_lname, user.getUserLastName()));
+                inputFullName.setText(user.getUserLastName() + ", " + user.getUserFirstName());
                 inputGender.setText(getString(R.string.update_gender, user.getGender()));
                 inputNumber.setText(getString(R.string.update_number, user.getMobileNumber()));
                 inputEmail.setText(getString(R.string.update_email, auth.getCurrentUser().getEmail()));
