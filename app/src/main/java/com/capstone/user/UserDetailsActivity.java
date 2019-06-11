@@ -6,11 +6,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,6 +23,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.capstone.contact.ContactActivity;
+import com.capstone.emergency.EmergencyActivity;
 import com.capstone.login.MainActivity;
 import com.example.dana.capstone.R;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -48,6 +54,10 @@ import java.util.Date;
 import java.util.Locale;
 
 public class UserDetailsActivity extends AppCompatActivity {
+    private DrawerLayout dl;
+    private ActionBarDrawerToggle t;
+    private NavigationView nv;
+
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private String id;
@@ -63,6 +73,42 @@ public class UserDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_details);
         setTitle("My Profile");
+        dl = findViewById(R.id.activity_user_details);
+        t = new ActionBarDrawerToggle(this, dl, R.string.Close, R.string.Open);
+
+        dl.addDrawerListener(t);
+        t.syncState();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        nv = findViewById(R.id.nv);
+        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                switch(id)
+                {
+                    case R.id.Emergency:
+                        startActivity(new Intent(UserDetailsActivity.this, EmergencyActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                        dl.closeDrawers();
+                        break;
+                    case R.id.contacts:
+                        startActivity(new Intent(UserDetailsActivity.this, ContactActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                        dl.closeDrawers();
+                        break;
+                    case R.id.profile:
+                        Toast.makeText(UserDetailsActivity.this, "Profile", Toast.LENGTH_SHORT).show();
+                        dl.closeDrawers();
+                        break;
+                    case R.id.logout:
+                        signOut();
+                        break;
+                }
+                return true;
+            }
+        });
         inputFullName = findViewById(R.id.txtFullName);
         inputAge = findViewById(R.id.txtAge);
         inputGender = findViewById(R.id.txtGender);
@@ -283,5 +329,17 @@ public class UserDetailsActivity extends AppCompatActivity {
         Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
         galleryIntent.setType("image/*");
         startActivityForResult(galleryIntent, GALLERY_REQ);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(t.onOptionsItemSelected(item))
+            return true;
+
+        return super.onOptionsItemSelected(item);
+    }
+    public void signOut() {
+        auth.signOut();
     }
 }

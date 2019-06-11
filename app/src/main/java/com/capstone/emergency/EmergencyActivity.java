@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.capstone.contact.ContactActivity;
 import com.capstone.location.EmergencyLocation;
@@ -111,12 +112,18 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 int id = item.getItemId();
                 switch(id)
                 {
+                    case R.id.Emergency:
+                        Toast.makeText(EmergencyActivity.this, "Home", Toast.LENGTH_SHORT).show();
+                        dl.closeDrawers();
+                        break;
                     case R.id.contacts:
-                        startActivity(new Intent(EmergencyActivity.this, ContactActivity.class));
+                        startActivity(new Intent(EmergencyActivity.this, ContactActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                         dl.closeDrawers();
                         break;
                     case R.id.profile:
-                        startActivity(new Intent(EmergencyActivity.this, UserDetailsActivity.class));
+                        startActivity(new Intent(EmergencyActivity.this, UserDetailsActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                         dl.closeDrawers();
                         break;
                     case R.id.logout:
