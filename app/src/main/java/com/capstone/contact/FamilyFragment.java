@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.capstone.RecyclerTouchListener;
 import com.capstone.user.User;
@@ -87,8 +88,16 @@ public class FamilyFragment extends Fragment {
                for(DataSnapshot datas: dataSnapshot.getChildren()) {
                    conid = datas.getKey();
                }
-               Contact con = new Contact(conid, relationship);
-               databaseContacts.child(id).child(conid).setValue(con);
+               if(conid == null || conid.equals(""))
+               {
+                   Toast.makeText(getActivity().getApplicationContext(),"email not found!",Toast.LENGTH_SHORT).show();
+               }
+               else{
+                   Contact con = new Contact(conid, relationship);
+                   databaseContacts.child(id).child(conid).setValue(con);
+                   Toast.makeText(getActivity().getApplicationContext(),"contact added!",Toast.LENGTH_SHORT).show();
+               }
+
            }
 
            @Override
@@ -151,6 +160,7 @@ public class FamilyFragment extends Fragment {
         searchDetails.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                contactList.clear();
                 for(DataSnapshot child : dataSnapshot.getChildren())
                 {
                     final String conid = child.child("contactid").getValue().toString();
