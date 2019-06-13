@@ -38,7 +38,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.mikhaellopez.circularimageview.CircularImageView;
+//import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -84,7 +84,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth;
     private DatabaseReference databaseUser;
-    private CircularImageView profilepic;
+    //private CircularImageView profilepic;
     private Button btnPolice;
 
     private boolean isContinue = false;
@@ -112,7 +112,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 int id = item.getItemId();
                 switch(id)
                 {
-                    case R.id.Emergency:
+                    case R.id.emergency:
                         Toast.makeText(EmergencyActivity.this, "Home", Toast.LENGTH_SHORT).show();
                         dl.closeDrawers();
                         break;
@@ -154,7 +154,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         age = findViewById(R.id.lblAge);
         gender =  findViewById(R.id.lblGender);
         loc =  findViewById(R.id.lblAddress);
-        profilepic = findViewById(R.id.imageView2);
+        //profilepic = findViewById(R.id.imageView2);
         btnPolice = findViewById(R.id.btnPolice);
 
         btnPolice.setOnClickListener(new View.OnClickListener() {
@@ -203,7 +203,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 age.setText(calcAge(user.getDob()));
                 gender.setText(user.getGender());
                 String profile = user.getImage();
-                Picasso.with(EmergencyActivity.this).load(profile).into(profilepic);
+                //Picasso.with(EmergencyActivity.this).load(profile).into(profilepic);
             }
 
             @Override

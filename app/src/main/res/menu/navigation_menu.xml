@@ -14,10 +14,10 @@
         android:orderInCategory="30"/>
 
     <item
-        android:id="@+id/Emergency"
+        android:id="@+id/emergency"
         android:title="Home"
         android:icon="@drawable/ic_home"
-        android:orderInCategory="10"/>
+        android:orderInCategory="30" />
     </group>
 
     <group>
