@@ -1,47 +1,36 @@
 package com.capstone.emergency;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.capstone.contact.ContactActivity;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.MainActivity;
-import com.capstone.message.InboxActivity;
 import com.capstone.message.MessageActivity;
 import com.capstone.user.User;
 import com.capstone.user.UserDetailsActivity;
 import com.example.dana.capstone.R;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -49,6 +38,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -63,22 +53,24 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
 
+    //maps problem https://stackoverflow.com/questions/29441384/fusedlocationapi-getlastlocation-always-null
+
     // The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
-    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 15;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private boolean mLocationPermissionGranted;
-    private LocationRequest locationRequest;
-    private LocationCallback locationCallback;
-
-    // The geographical location where the device is currently located. That is, the last-known
-    // location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
-    private GoogleApiClient mGoogleApiClient;
+//    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+//    private static final int DEFAULT_ZOOM = 15;
+//    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+//    private boolean mLocationPermissionGranted;
+//    private LocationRequest locationRequest;
+//    private LocationCallback locationCallback;
+//
+//    // The geographical location where the device is currently located. That is, the last-known
+//    // location retrieved by the Fused Location Provider.
+//    private Location mLastKnownLocation;
+//    private GoogleApiClient mGoogleApiClient;
 
     private TextView name, age, gender, loc;
     String address="address";
@@ -92,7 +84,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth;
     private DatabaseReference databaseUser;
-    private ImageView profilepic;
+    private CircularImageView profilepic;
     private Button btnPolice;
 
     private boolean isContinue = false;
@@ -120,20 +112,18 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 int id = item.getItemId();
                 switch(id)
                 {
+                    case R.id.Emergency:
+                        Toast.makeText(EmergencyActivity.this, "Home", Toast.LENGTH_SHORT).show();
+                        dl.closeDrawers();
+                        break;
                     case R.id.contacts:
-                        startActivity(new Intent(EmergencyActivity.this, ContactActivity.class));
+                        startActivity(new Intent(EmergencyActivity.this, ContactActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                         dl.closeDrawers();
                         break;
                     case R.id.profile:
-                        startActivity(new Intent(EmergencyActivity.this, UserDetailsActivity.class));
-                        dl.closeDrawers();
-                        break;
-                    case R.id.sent:
-                        startActivity(new Intent(EmergencyActivity.this, UserDetailsActivity.class));
-                        dl.closeDrawers();
-                        break;
-                    case R.id.inbox:
-                        startActivity(new Intent(EmergencyActivity.this, InboxActivity.class));
+                        startActivity(new Intent(EmergencyActivity.this, UserDetailsActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                         dl.closeDrawers();
                         break;
                     case R.id.logout:
@@ -159,7 +149,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 }
             }
         };
-        databaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(auth.getCurrentUser().getUid());
+        databaseUser = FirebaseDatabase.getInstance().getReference("Users").child(auth.getCurrentUser().getUid());
         name = findViewById(R.id.lblName);
         age = findViewById(R.id.lblAge);
         gender =  findViewById(R.id.lblGender);
@@ -229,7 +219,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         //LocalDate today = LocalDate.now();
         Date today = Calendar.getInstance().getTime();
         Date birth = null;
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         try {
             birth = formatter.parse(dateBirth);
         } catch (ParseException e) {
@@ -245,82 +235,82 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
-        // Prompt the user for permission.
-        getLocationPermission();
-        // Turn on the My Location layer and the related control on the map.
-        updateLocationUI();
+//        // Prompt the user for permission.
+//        getLocationPermission();
+//        // Turn on the My Location layer and the related control on the map.
+//        updateLocationUI();
+//
+//        // Get the current location of the device and set the position of the map.
+//        getDeviceLocation();
+    }
+//    private void getDeviceLocation() {
+//        /*
+//         * Get the best and most recent location of the device, which may be null in rare
+//         * cases when a location is not available.
+//         */
+//        try {
+//            if (mLocationPermissionGranted) {
+//                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+//                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Location> task) {
+//                        if (task.isSuccessful()) {
+//                            // Set the map's camera position to the current location of the device.
+//                            mLastKnownLocation = task.getResult();
+//                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+//                                    new LatLng(mLastKnownLocation.getLatitude(),
+//                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+//                            wayLatitude = mLastKnownLocation.getLatitude();
+//                            wayLongitude = mLastKnownLocation.getLongitude();
+//                            getAddress();
+//                        } else {
+//                            mMap.moveCamera(CameraUpdateFactory
+//                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+//                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+//                        }
+//                    }
+//                });
+//            }
+//        } catch (SecurityException e)  {
+//            Log.e("Exception: %s", e.getMessage());
+//        }
+//    }
 
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
-    }
-    private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-            if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            wayLatitude = mLastKnownLocation.getLatitude();
-                            wayLongitude = mLastKnownLocation.getLongitude();
-                            getAddress();
-                        } else {
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch (SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    private void updateLocationUI() {
-        if (mMap == null) {
-            return;
-        }
-        try {
-            if (mLocationPermissionGranted) {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
-            } else {
-                mMap.setMyLocationEnabled(false);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
-                getLocationPermission();
-            }
-        } catch (SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
+//    private void getLocationPermission() {
+//        /*
+//         * Request location permission, so that we can get the location of the
+//         * device. The result of the permission request is handled by a callback,
+//         * onRequestPermissionsResult.
+//         */
+//        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+//                android.Manifest.permission.ACCESS_FINE_LOCATION)
+//                == PackageManager.PERMISSION_GRANTED) {
+//            mLocationPermissionGranted = true;
+//        } else {
+//            ActivityCompat.requestPermissions(this,
+//                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+//                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+//        }
+//    }
+//
+//    private void updateLocationUI() {
+//        if (mMap == null) {
+//            return;
+//        }
+//        try {
+//            if (mLocationPermissionGranted) {
+//                mMap.setMyLocationEnabled(true);
+//                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+//            } else {
+//                mMap.setMyLocationEnabled(false);
+//                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+//                mLastKnownLocation = null;
+//                getLocationPermission();
+//            }
+//        } catch (SecurityException e)  {
+//            Log.e("Exception: %s", e.getMessage());
+//        }
+//    }
 
     public Address getAddress(double latitude,double longitude)
     {

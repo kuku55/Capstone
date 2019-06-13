@@ -1,16 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <group>
     <item
         android:id="@+id/profile"
-        android:title="User Profile" />
+        android:title="Profile"
+        android:icon="@drawable/ic_profile"
+        android:orderInCategory="20" />
+
     <item android:id="@+id/contacts"
-        android:title="Emergency Contacts"/>
+        android:title="Contacts"
+        android:icon="@drawable/ic_contacts"
+        android:orderInCategory="30"/>
+
     <item
-        android:id="@+id/sent"
-        android:title="Sent to Police" />
-    <item android:id="@+id/inbox"
-        android:title="Inbox"/>
+        android:id="@+id/Emergency"
+        android:title="Home"
+        android:icon="@drawable/ic_home"
+        android:orderInCategory="10"/>
+    </group>
+
+    <group>
     <item android:id="@+id/logout"
-        android:title="Logout"/>
+        android:title="Logout"
+        android:icon="@drawable/ic_logout"
+        android:orderInCategory="40" />
+    </group>
 </menu>

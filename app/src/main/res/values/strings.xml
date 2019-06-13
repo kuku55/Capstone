@@ -60,7 +60,7 @@
     <string name="update_relationship">Relationship: %s</string>
     <string name="update_gender">Gender: %s</string>
     <string name="update_number">Mobile Number: %s</string>
-    <string name="update_email">E-Mail Address: %s</string>
+    <string name="update_email">E-mail: %s</string>
     <string name="sentBy">From: %s</string>
     <string name="subject">Subject: %s</string>
     <!-- TODO: Remove or change this placeholder text -->

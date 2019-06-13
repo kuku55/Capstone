@@ -24,9 +24,12 @@ import com.capstone.json.MySingleton;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -41,6 +44,7 @@ public class SignUpActivity extends AppCompatActivity{
     private Button btnSignIn, btnSignUp, btnResetPassword;
     private ProgressBar progressBar;
     private FirebaseAuth auth;
+    FirebaseUser firebaseUser;
     private DatabaseReference databaseUser;
     private RadioGroup radioGenderGroup;
     private RadioButton radioGenderButton;
@@ -67,6 +71,8 @@ public class SignUpActivity extends AppCompatActivity{
         setContentView(R.layout.activity_sign_up);
 
         //Get Firebase auth instance
+//        firebaseDatabase = FirebaseDatabase.getInstance();
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         auth = FirebaseAuth.getInstance();
 
         btnSignIn = findViewById(R.id.sign_in_button);
@@ -172,13 +178,23 @@ public class SignUpActivity extends AppCompatActivity{
                         .addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
-                                databaseUser = FirebaseDatabase.getInstance().getReference("Users");
-                                String id = auth.getCurrentUser().getUid();
-                                String defaultImage = "https://firebasestorage.googleapis.com/v0/b/capstone-cc2de.appspot.com/o/profilepics%2Fgeneric-profile.png?alt=media&token=bfda0283-3821-45eb-ac49-4e9c02a41e42";
-                                User user = new User(id, fname, lname, gender, dob, number, email, defaultImage);
-                                databaseUser.child(id).setValue(user);
+                                databaseUser = FirebaseDatabase.getInstance().getReference();
+                                    String id = auth.getInstance().getCurrentUser().getUid();
+                                    String defaultImage = "https://firebasestorage.googleapis.com/v0/b/capstone-cc2de.appspot.com/o/profilepics%2Fgeneric-profile.png?alt=media&token=bfda0283-3821-45eb-ac49-4e9c02a41e42";
+                                    User user = new User(id, fname, lname, gender, dob, number, email, defaultImage);
+                                    databaseUser.child("Users").child(id).setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Toast.makeText(SignUpActivity.this, "User registered!", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(SignUpActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                                        }
+                                    });
 
-                                Toast.makeText(SignUpActivity.this, "User registered!", Toast.LENGTH_SHORT).show();
+
                                 JSONObject request = new JSONObject();
                                 try {
                                     //Populate the request parameters
@@ -227,7 +243,6 @@ public class SignUpActivity extends AppCompatActivity{
             }
         });
     }
-
 
     @Override
     protected void onResume() {

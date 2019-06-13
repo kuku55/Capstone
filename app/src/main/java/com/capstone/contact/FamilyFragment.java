@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.capstone.RecyclerTouchListener;
 import com.capstone.user.User;
@@ -31,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FamilyFragment extends Fragment {
-    private List<User> contactList = new ArrayList<>();
+    private List<Contact> contactList = new ArrayList<>();
     private DatabaseReference databaseContacts;
     private DatabaseReference searchDetails;
     private ContactAdapter mAdapter;
@@ -44,7 +43,7 @@ public class FamilyFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        id = auth.getCurrentUser().getUid();
+        id = auth.getInstance().getCurrentUser().getUid();
         databaseContacts = FirebaseDatabase.getInstance().getReference("Contacts");
         searchDetails =  FirebaseDatabase.getInstance().getReference("Contacts").child(id);
     }
@@ -88,16 +87,8 @@ public class FamilyFragment extends Fragment {
                for(DataSnapshot datas: dataSnapshot.getChildren()) {
                    conid = datas.getKey();
                }
-               if(conid == null || conid.equals(""))
-               {
-                   Toast.makeText(getActivity().getApplicationContext(),"email not found!",Toast.LENGTH_SHORT).show();
-               }
-               else{
-                   Contact con = new Contact(conid, relationship);
-                   databaseContacts.child(id).child(conid).setValue(con);
-                   Toast.makeText(getActivity().getApplicationContext(),"contact added!",Toast.LENGTH_SHORT).show();
-               }
-
+               Contact con = new Contact(conid, relationship);
+               databaseContacts.child(id).child(conid).setValue(con);
            }
 
            @Override
@@ -146,9 +137,10 @@ public class FamilyFragment extends Fragment {
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getActivity().getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, int position) {
-                User u = contactList.get(position);
+                Contact c = contactList.get(position);
                 Intent intent = new Intent(getActivity().getApplicationContext(), ContactDetailsActivity.class);
-                intent.putExtra("id", u.getUserId());
+                intent.putExtra("id", c.getContactid());
+                intent.putExtra("relationship", c.getRelationship());
                 startActivity(intent);
             }
 
@@ -157,44 +149,40 @@ public class FamilyFragment extends Fragment {
 
             }
         }));
-        searchDetails.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                contactList.clear();
-                for(DataSnapshot child : dataSnapshot.getChildren())
-                {
-                    final String conid = child.child("contactid").getValue().toString();
-                    DatabaseReference con = FirebaseDatabase.getInstance().getReference("Users").child(conid);
-                    con.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            User user = dataSnapshot.getValue(User.class);
-                            User pop = new User();
-                            String lname = user.getUserLastName();
-                            String fname = user.getUserFirstName();
-                            String email = user.getEmail();
-                            pop.setUserFirstName(fname);
-                            pop.setUserLastName(lname);
-                            pop.setEmail(email);
-                            pop.setUserId(conid);
-                            contactList.add(pop);
-                            mAdapter.notifyDataSetChanged();
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+//        searchDetails.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                for(DataSnapshot child : dataSnapshot.getChildren())
+//                {
+//                    final String conid = child.child("contactid").getValue().toString();
+//                    final DatabaseReference con = FirebaseDatabase.getInstance().getReference("Contacts").child(conid);
+//                    con.addValueEventListener(new ValueEventListener() {
+//                        @Override
+//                        public void onDataChange(DataSnapshot dataSnapshot) {
+//                            Contact c = dataSnapshot.getValue(Contact.class);
+//                            Contact pop = new Contact();
+//                            String cId = c.getContactid();
+//                            String rel = c.getContactid();
+//                            pop.setContactid(cId);
+//                            pop.setRelationship(rel);
+//                            contactList.add(pop);
+//                            mAdapter.notifyDataSetChanged();
+//                        }
+//
+//                        @Override
+//                        public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                        }
+//
+//                    });
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
         return view;
     }
 }
