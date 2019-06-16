@@ -11,6 +11,7 @@ import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -22,6 +23,7 @@ import com.capstone.json.MySingleton;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,6 +33,7 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,6 +46,7 @@ public class MessageActivity extends AppCompatActivity {
     private String age;
     private EditText message, subject;
     private DatabaseReference databaseMessage;
+    private DatabaseReference searchDetails;
     private Button send, back;
     private static final String KEY_UID = "uID";
     private static final String KEY_NAME = "name";
@@ -55,7 +59,10 @@ public class MessageActivity extends AppCompatActivity {
     private static final String KEY_LONGITUDE = "longitude";
     private static final String KEY_SUBJECT = "subject";
     private static final String KEY_MESSAGE = "message";
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
+    private ProgressBar progressBar;
+    DateFormat dateFormat = new SimpleDateFormat("M/d/yyyy HH:mm:ss", Locale.US);
+    Date date = new Date();
+    private FirebaseAuth auth;
     String phoneNo;
     String messager;
 
@@ -64,11 +71,13 @@ public class MessageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
-        cid = getIntent().getStringExtra("CONTACT_ID");
+        auth = FirebaseAuth.getInstance();
+        cid =  getIntent().getStringExtra("CONTACT_ID");
         uid = getIntent().getStringExtra("CURRENT_ID");
         message = findViewById(R.id.txtMessage);
         subject = findViewById(R.id.txtSubject);
         back = findViewById(R.id.btnBack);
+        progressBar = findViewById(R.id.progressBar);
         //name = getIntent().getStringExtra("NAME");
         //age = getIntent().getStringExtra("AGE");
         //EmergencyLocation el = (EmergencyLocation) getIntent().getSerializableExtra("EMERGENCY");
@@ -87,17 +96,16 @@ public class MessageActivity extends AppCompatActivity {
                 Date c = Calendar.getInstance().getTime();
                 SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                 String presentDate = df.format(c);
-                databaseMessage = FirebaseDatabase.getInstance().getReference().child("Messages").child(uid).child(cid);
+                databaseMessage = FirebaseDatabase.getInstance().getReference("Messages").child(uid).child(cid);
                 String pushId = databaseMessage.push().getKey();
                 final String msg = message.getText().toString().trim();
                 String sub = subject.getText().toString().trim();
                 String isRead = "unread";
-
+                progressBar.setVisibility(View.VISIBLE);
                 if(cid.equals("Police")){
                     name = getIntent().getStringExtra("NAME");
                     age = getIntent().getStringExtra("AGE");
                     EmergencyLocation el = (EmergencyLocation) getIntent().getSerializableExtra("EMERGENCY");
-                    subject.setText(el.getAddress());
 
                     JSONObject request = new JSONObject();
                     try {
@@ -134,6 +142,45 @@ public class MessageActivity extends AppCompatActivity {
                             });
                     // Access the RequestQueue through your singleton class.
                     MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
+                    searchDetails =  FirebaseDatabase.getInstance().getReference("Contacts").child(uid);
+                    searchDetails.addValueEventListener(new ValueEventListener() {
+
+
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                final String conid = child.child("contactid").getValue().toString();
+                                final DatabaseReference con = FirebaseDatabase.getInstance().getReference("Users").child(conid);
+                                con.addValueEventListener(new ValueEventListener() {
+
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        User u = dataSnapshot.getValue(User.class);
+                                        String mobile = u.getMobileNumber();
+                                        try {
+                                            sendMessage(mobile, " Message sent to police on: " + dateFormat.format(date) + "\n" +
+                                                    msg);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                            progressBar.setVisibility(View.GONE);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        progressBar.setVisibility(View.GONE);
+
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                    progressBar.setVisibility(View.GONE);
                     finish();
                 }else{
                     Message mg = new Message(pushId, uid, cid, msg, presentDate, sub, isRead);
@@ -141,57 +188,44 @@ public class MessageActivity extends AppCompatActivity {
                     DatabaseReference getNumber =  FirebaseDatabase.getInstance().getReference("Users").child(cid);
                     getNumber.addValueEventListener(new ValueEventListener() {
 
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            User user = dataSnapshot.getValue(User.class);
                             String num = user.getMobileNumber();
-                            sendSMSMessage(num, msg);
+                            try {
+                                sendMessage(num, msg);
+                                sendMessage(num, " Message sent on: " + dateFormat.format(date) + "\n" +
+                                        msg);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                progressBar.setVisibility(View.GONE);
+                            }
                             Toast.makeText(getBaseContext(), "Message sent!", Toast.LENGTH_SHORT).show();
                             finish();
-                    }
+                            progressBar.setVisibility(View.GONE);
+                        }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            progressBar.setVisibility(View.GONE);
 
-                    }
-                });
+                        }
+                    });
                 }
             }
         });
 
 
     }
-    protected void sendSMSMessage(String num, String msg) {
-        phoneNo = num;
-        messager = msg;
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.SEND_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.SEND_SMS)) {
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.SEND_SMS},
-                        MY_PERMISSIONS_REQUEST_SEND_SMS);
-            }
+    private void sendMessage(String phoneNo, String message) throws InterruptedException {
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(phoneNo, null, message, null, null);
+            Toast.makeText(getApplicationContext(), "SMS Sent.", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "SMS Fail. Please try again!", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == MY_PERMISSIONS_REQUEST_SEND_SMS) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(phoneNo, null, messager, null, null);
-                Toast.makeText(getApplicationContext(), "SMS sent.",
-                        Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getApplicationContext(),
-                        "failed sending SMS.", Toast.LENGTH_LONG).show();
-            }
-        }
-
+        Thread.sleep(2000);
     }
 }

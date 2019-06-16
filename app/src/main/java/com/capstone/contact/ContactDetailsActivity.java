@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.capstone.message.MessageActivity;
 import com.capstone.user.User;
@@ -47,8 +48,8 @@ public class ContactDetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getBaseContext(), MessageActivity.class);
-                intent.putExtra("CURRENT_ID", uid);
                 intent.putExtra("CONTACT_ID", cid);
+                intent.putExtra("CURRENT_ID", uid);
                 startActivity(intent);
                 finish();
             }

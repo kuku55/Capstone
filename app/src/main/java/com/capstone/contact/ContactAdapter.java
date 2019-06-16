@@ -13,7 +13,7 @@ import java.util.List;
 
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHolder> {
 
-    private List<Contact> contactsList;
+    private List<User> contactsList;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name, email;
@@ -26,7 +26,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHo
     }
 
 
-    public ContactAdapter(List<Contact> contactsList) {
+    public ContactAdapter(List<User> contactsList) {
         this.contactsList = contactsList;
     }
 
@@ -40,8 +40,9 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHo
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        Contact con = contactsList.get(position);
-        holder.name.setText(con.getContactid() + ", " + con.getRelationship());
+        User con = contactsList.get(position);
+        holder.name.setText(con.getUserLastName() + ", " + con.getUserFirstName());
+        holder.email.setText(con.getEmail());
     }
 
     @Override

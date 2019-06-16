@@ -113,7 +113,8 @@ public class SignUpActivity extends AppCompatActivity{
                         android.R.style.Theme_Holo_Dialog, new DatePickerDialog.OnDateSetListener(){
                     @Override
                     public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                        inputBirth.setText(year + "-" + (month + 1) + "-" + day);
+
+                        inputBirth.setText((month + 1) + "/" +  String.format("%02d", day) + "/" + year);
                     }
                 }, year, month, dayOfMonth);
                 datePickerDialog.show();
