@@ -74,4 +74,5 @@
     <string name="add_lock">Add Lock to your Phone in Settings</string>
     <string name="one_fingerprint">You should add atleast 1 Fingerprint to use this Feature</string>
     <string name="place_finger">Place your Finger on Scanner to Access the App.</string>
+    <string name="title_activity_finger_scan">FingerScanActivity</string>
 </resources>

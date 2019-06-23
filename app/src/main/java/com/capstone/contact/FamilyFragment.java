@@ -148,7 +148,6 @@ public class FamilyFragment extends Fragment {
                 User u = contactList.get(position);
                 Intent intent = new Intent(getActivity().getApplicationContext(), ContactDetailsActivity.class);
                 intent.putExtra("id", u.getUserId());
-                //Toast.makeText(getActivity().getApplicationContext(), u.getUserId(), Toast.LENGTH_SHORT).show();
                 startActivity(intent);
             }
 
