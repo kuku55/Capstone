@@ -1,23 +1,17 @@
 package com.capstone.contact;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
-import com.capstone.RecyclerTouchListener;
-import com.capstone.user.User;
 import com.example.dana.capstone.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -31,158 +25,95 @@ import java.util.List;
 
 public class FamilyFragment extends Fragment {
     private List<Contact> contactList = new ArrayList<>();
-    private DatabaseReference databaseContacts;
-    private DatabaseReference searchDetails;
+    private RecyclerView recyclerView;
+    private RecyclerView.LayoutManager layoutManager;
+    public RelativeLayout familyLayout;
+//    private DatabaseReference databaseContacts;
     private ContactAdapter mAdapter;
-    private String id;
+//    private String id;
+
+    private TextView txtContactName;
+    private TextView txtContactNumber;
+    private TextView txtContactRelationship;
+
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference databaseReference;
+
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
+
+
     public FamilyFragment() {
         // Required empty public constructor
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        id = auth.getInstance().getCurrentUser().getUid();
-        databaseContacts = FirebaseDatabase.getInstance().getReference("Contacts");
-        searchDetails =  FirebaseDatabase.getInstance().getReference("Contacts").child(id);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+
+        return inflater.inflate(R.layout.content_family, container, false);
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-    private void showAddContactDialog() {
+        txtContactName = getView().findViewById(R.id.con_name);
+        txtContactNumber = getView().findViewById(R.id.con_number);
+        txtContactRelationship = getView().findViewById(R.id.con_relationship);
+        familyLayout = getView().findViewById(R.id.familyLayout);
 
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
-        LayoutInflater inflater = getLayoutInflater();
-        final View dialogView = inflater.inflate(R.layout.addcontact_dialog, null);
-        dialogBuilder.setView(dialogView);
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        databaseReference = firebaseDatabase.getReference().child("Contacts").child(auth.getUid());
+        //used id for temporary address, may need different id
 
-        final EditText addemail = dialogView.findViewById(R.id.con_email);
-        final EditText addrelationship = dialogView.findViewById(R.id.con_relationship);
-        final Button buttonAdd = dialogView.findViewById(R.id.btn_Add);
+        recyclerView = getView().findViewById(R.id.recycler_view_family);
+        recyclerView.setHasFixedSize(true);
 
-        dialogBuilder.setTitle("Add Contact");
-        final AlertDialog b = dialogBuilder.create();
-        b.show();
+        layoutManager = new LinearLayoutManager(getActivity());
 
+        recyclerView.setLayoutManager(layoutManager);
 
-        buttonAdd.setOnClickListener(new View.OnClickListener() {
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View view) {
-                String email = addemail.getText().toString().trim();
-                String relationship = addrelationship.getText().toString().trim();
-                if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(relationship)) {
-                    addCon(email, relationship);
-                    b.dismiss();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                for(DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()){
+
+                    String id = auth.getUid();
+                    String name = dataSnapshot1.getValue(String.class);
+                    String number = dataSnapshot1.getValue(String.class);
+                    String relationship = dataSnapshot1.getValue(String.class);
+                    Contact contact = new Contact(id, name, number, relationship);
+
+//                    Contact contact = dataSnapshot1.getValue(Contact.class);
+//                    Contact c = new Contact();
+//                    String id = auth.getUid();
+//                    String name = contact.getName();
+//                    String number = contact.getNumber();
+//                    String relationship = contact.getRelationship();
+
+//                    c.setId(id);
+//                    c.setName(name);
+//                    c.setNumber(number);
+//                    c.setRelationship(relationship);
+
+//                    Contact contact = dataSnapshot1.getValue(Contact.class);
+
+                    contactList.add(contact);
                 }
+
+                mAdapter = new ContactAdapter(contactList);
+                mAdapter.notifyDataSetChanged();
+
+                recyclerView.setAdapter(mAdapter);
             }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+
+
         });
-    }
 
-    private void addCon(String email, final String relationship) {
-       DatabaseReference findByEmail = FirebaseDatabase.getInstance().getReference("Users");
-       findByEmail.orderByChild("email").equalTo(email).addValueEventListener(new ValueEventListener() {
-           @Override
-           public void onDataChange(DataSnapshot dataSnapshot) {
-               String conid = "";
-               for(DataSnapshot datas: dataSnapshot.getChildren()) {
-                   conid = datas.getKey();
-               }
-               Contact con = new Contact(conid, relationship);
-               databaseContacts.child(id).child(conid).setValue(con);
-           }
-
-           @Override
-           public void onCancelled(DatabaseError databaseError) {
-
-           }
-       });
-    }
-
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_family, container, false);
-        Button addContact = (Button) view.findViewById(R.id.btn_add_contact);
-        addContact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showAddContactDialog();
-            }
-        });
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
-
-        mAdapter = new ContactAdapter(contactList);
-
-        //recyclerView.setHasFixedSize(true);
-
-        // vertical RecyclerView
-        // keep movie_list_row.xml width to `match_parent`
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
-
-        // horizontal RecyclerView
-        // keep movie_list_row.xml width to `wrap_content`
-        // RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
-
-        recyclerView.setLayoutManager(mLayoutManager);
-
-        // adding inbuilt divider line
-        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
-
-        // adding custom divider line with padding 16dp
-        // recyclerView.addItemDecoration(new MyDividerItemDecoration(this, LinearLayoutManager.HORIZONTAL, 16));
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        recyclerView.setAdapter(mAdapter);
-        // row click listener
-        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getActivity().getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
-            @Override
-            public void onClick(View view, int position) {
-                Contact c = contactList.get(position);
-                Intent intent = new Intent(getActivity().getApplicationContext(), ContactDetailsActivity.class);
-                intent.putExtra("id", c.getContactid());
-                intent.putExtra("relationship", c.getRelationship());
-                startActivity(intent);
-            }
-
-            @Override
-            public void onLongClick(View view, int position) {
-
-            }
-        }));
-//        searchDetails.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                for(DataSnapshot child : dataSnapshot.getChildren())
-//                {
-//                    final String conid = child.child("contactid").getValue().toString();
-//                    final DatabaseReference con = FirebaseDatabase.getInstance().getReference("Contacts").child(conid);
-//                    con.addValueEventListener(new ValueEventListener() {
-//                        @Override
-//                        public void onDataChange(DataSnapshot dataSnapshot) {
-//                            Contact c = dataSnapshot.getValue(Contact.class);
-//                            Contact pop = new Contact();
-//                            String cId = c.getContactid();
-//                            String rel = c.getContactid();
-//                            pop.setContactid(cId);
-//                            pop.setRelationship(rel);
-//                            contactList.add(pop);
-//                            mAdapter.notifyDataSetChanged();
-//                        }
-//
-//                        @Override
-//                        public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//                        }
-//
-//                    });
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        });
-        return view;
     }
 }

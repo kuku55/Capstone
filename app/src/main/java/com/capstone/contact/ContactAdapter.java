@@ -16,12 +16,13 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHo
     private List<Contact> contactsList;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name, email;
+        public TextView name, number, relationship;
 
         public MyViewHolder(View view) {
             super(view);
-            name = view.findViewById(R.id.name);
-            email = view.findViewById(R.id.email);
+            name = view.findViewById(R.id.con_name);
+            number = view.findViewById(R.id.con_number);
+            relationship = view.findViewById(R.id.con_relationship);
         }
     }
 
@@ -41,7 +42,9 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHo
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Contact con = contactsList.get(position);
-        holder.name.setText(con.getContactid() + ", " + con.getRelationship());
+        holder.name.setText(con.getName());
+        holder.number.setText(con.getNumber());
+        holder.relationship.setText(con.getRelationship());
     }
 
     @Override

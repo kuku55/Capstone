@@ -1,12 +1,18 @@
 package com.capstone.emergency;
 
+import android.Manifest;
+import android.app.KeyguardManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.hardware.fingerprint.FingerprintManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,10 +20,10 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.capstone.FingerprintHandler;
 import com.capstone.contact.ContactActivity;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.MainActivity;
@@ -27,10 +33,14 @@ import com.capstone.user.UserDetailsActivity;
 import com.example.dana.capstone.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -42,10 +52,6 @@ import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -92,10 +98,13 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     private Location mLastLocation;
     private double wayLatitude = 0.0, wayLongitude = 0.0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_emergency);
+
+//        fingerprintRead();
 
         dl = findViewById(R.id.activity_emergency);
         t = new ActionBarDrawerToggle(this, dl,R.string.Open, R.string.Close);
@@ -179,6 +188,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -200,10 +210,11 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
                 name.setText(getString(R.string.full_name, user.getUserFirstName(), user.getUserLastName()));
-                age.setText(calcAge(user.getDob()));
+                //age.setText(calcAge(user.getDob()));
+                age.setText(user.getDob());
                 gender.setText(user.getGender());
                 String profile = user.getImage();
-                Picasso.with(EmergencyActivity.this).load(profile).into(profilepic);
+                Picasso.with(EmergencyActivity.this).load(profile).fit().centerCrop().into(profilepic);
             }
 
             @Override
@@ -214,23 +225,23 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     //code not compatible with older phones
-    public String calcAge (String dateBirth)
-    {
-        //LocalDate today = LocalDate.now();
-        Date today = Calendar.getInstance().getTime();
-        Date birth = null;
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        try {
-            birth = formatter.parse(dateBirth);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //LocalDate bday =  birth.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        //Period p = Period.between(bday, today);
-        long msDiff = today.getTime() - birth.getTime();
-        int p = (int)(msDiff / 1000 / 60 / 60 / 24 / 365.25);
-        return String.valueOf(p);
-    }
+//    public String calcAge (String dateBirth)
+//    {
+//        //LocalDate today = LocalDate.now();
+//        Date today = Calendar.getInstance().getTime();
+//        Date birth = null;
+//        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+//        try {
+//            birth = formatter.parse(dateBirth);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
+//        //LocalDate bday =  birth.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+//        //Period p = Period.between(bday, today);
+//        long msDiff = today.getTime() - birth.getTime();
+//        int p = (int)(msDiff / 1000 / 60 / 60 / 24 / 365.25);
+//        return String.valueOf(p);
+//    }
 
     public void onMapReady(GoogleMap map) {
         mMap = map;
@@ -242,6 +253,10 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 //
 //        // Get the current location of the device and set the position of the map.
 //        getDeviceLocation();
+        LatLng curL = new LatLng(14.562361, 121.021562);
+                mMap.addMarker(new MarkerOptions().position(curL)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curL, 18)); //18 zoom-in
     }
 //    private void getDeviceLocation() {
 //        /*
@@ -264,8 +279,6 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 //                            wayLongitude = mLastKnownLocation.getLongitude();
 //                            getAddress();
 //                        } else {
-//                            mMap.moveCamera(CameraUpdateFactory
-//                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
 //                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
 //                        }
 //                    }

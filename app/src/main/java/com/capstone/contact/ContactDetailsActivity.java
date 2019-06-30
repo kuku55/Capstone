@@ -89,4 +89,8 @@ public class ContactDetailsActivity extends AppCompatActivity {
             }
         });
     }
+
+//    public void onClickMessage(View v){
+//        startActivity(new Intent(ContactDetailsActivity.this, MessageActivity.class));
+//    }
 }

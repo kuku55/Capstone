@@ -1,6 +1,12 @@
 package com.capstone.message;
 
+import android.Manifest;
+import android.app.KeyguardManager;
+import android.content.pm.PackageManager;
+import android.hardware.fingerprint.FingerprintManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +17,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.capstone.FingerprintHandler;
 import com.capstone.json.MySingleton;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.SignUpActivity;
@@ -46,11 +53,17 @@ public class MessageActivity extends AppCompatActivity {
     private static final String KEY_SUBJECT = "subject";
     private static final String KEY_MESSAGE = "message";
 
+    private FingerprintManager fingerprintManager;
+    private KeyguardManager keyguardManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
+
+        fingerprintRead();
+
         cid = getIntent().getStringExtra("CONTACT_ID");
         uid = getIntent().getStringExtra("CURRENT_ID");
         message = findViewById(R.id.txtMessage);
@@ -130,5 +143,37 @@ public class MessageActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void fingerprintRead() {
+        //checks if SDK is Marshmallow or above
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+
+            fingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
+            keyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+
+            if(!fingerprintManager.isHardwareDetected()){
+
+                Toast.makeText(this, "No fingerprint scanner detected.", Toast.LENGTH_LONG).show();
+
+            } else if(ContextCompat.checkSelfPermission(this, Manifest.permission.USE_FINGERPRINT) !=
+                    PackageManager.PERMISSION_GRANTED){
+
+                Toast.makeText(this, "Permission not granted to use the Fingerprint Scanner", Toast.LENGTH_LONG).show();
+
+            } else if (!keyguardManager.isKeyguardSecure()) {
+
+                Toast.makeText(this, "Add lock to your device.", Toast.LENGTH_LONG).show();
+
+            }else if(!fingerprintManager.hasEnrolledFingerprints()){
+
+                Toast.makeText(this, "Add a fingerprint in the device.", Toast.LENGTH_LONG).show();
+
+            } else {
+
+                FingerprintHandler fingerprintHandler = new FingerprintHandler(this);
+                fingerprintHandler.startAuth(fingerprintManager, null);
+            }
+        }
     }
 }
