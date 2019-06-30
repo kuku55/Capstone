@@ -121,7 +121,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 int id = item.getItemId();
                 switch(id)
                 {
-                    case R.id.Emergency:
+                    case R.id.emergency:
                         Toast.makeText(EmergencyActivity.this, "Home", Toast.LENGTH_SHORT).show();
                         dl.closeDrawers();
                         break;

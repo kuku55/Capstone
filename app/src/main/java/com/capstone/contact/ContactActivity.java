@@ -77,7 +77,7 @@ public class ContactActivity extends AppCompatActivity {
                 int id = item.getItemId();
                 switch(id)
                 {
-                    case R.id.Emergency:
+                    case R.id.emergency:
                         startActivity(new Intent(ContactActivity.this, EmergencyActivity.class)
                                 .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
                         dl.closeDrawers();

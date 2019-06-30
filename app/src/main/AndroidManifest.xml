@@ -20,7 +20,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name="com.capstone.AlertActivity"></activity>
-        <activity android:name="com.capstone.fingerprint.FingerprintActivity" />
+        <!--<activity android:name="com.capstone.fingerprint.FingerprintActivity" />-->
         <activity android:name="com.capstone.login.PasswordResetActivity" />
 
         <service
