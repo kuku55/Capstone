@@ -13,6 +13,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.dana.capstone.R;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,13 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FamilyFragment extends Fragment {
-    private List<Contact> contactList = new ArrayList<>();
+    private View FamilyView;
+    private ArrayList<Contact> contactList = new ArrayList<>();
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
     public RelativeLayout familyLayout;
 //    private DatabaseReference databaseContacts;
     private ContactAdapter mAdapter;
-//    private String id;
+    private String id;
 
     private TextView txtContactName;
     private TextView txtContactNumber;
@@ -52,7 +54,7 @@ public class FamilyFragment extends Fragment {
         return inflater.inflate(R.layout.content_family, container, false);
     }
 
-    @Override
+        @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
@@ -62,8 +64,8 @@ public class FamilyFragment extends Fragment {
         familyLayout = getView().findViewById(R.id.familyLayout);
 
         firebaseDatabase = FirebaseDatabase.getInstance();
-        databaseReference = firebaseDatabase.getReference().child("Contacts").child(auth.getUid());
-        //used id for temporary address, may need different id
+        databaseReference = firebaseDatabase.getReference().child("Contacts");
+        databaseReference.keepSynced(true);
 
         recyclerView = getView().findViewById(R.id.recycler_view_family);
         recyclerView.setHasFixedSize(true);
@@ -72,31 +74,18 @@ public class FamilyFragment extends Fragment {
 
         recyclerView.setLayoutManager(layoutManager);
 
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        //only shows fields where id = uid
+        databaseReference.orderByChild("id").equalTo(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 for(DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()){
 
-                    String id = auth.getUid();
-                    String name = dataSnapshot1.getValue(String.class);
-                    String number = dataSnapshot1.getValue(String.class);
-                    String relationship = dataSnapshot1.getValue(String.class);
+                    //set value to the recyclerview
+                    String id = dataSnapshot1.child("id").getValue(String.class);
+                    String name = dataSnapshot1.child("name").getValue(String.class);
+                    String number = dataSnapshot1.child("number").getValue(String.class);
+                    String relationship = dataSnapshot1.child("relationship").getValue(String.class);
                     Contact contact = new Contact(id, name, number, relationship);
-
-//                    Contact contact = dataSnapshot1.getValue(Contact.class);
-//                    Contact c = new Contact();
-//                    String id = auth.getUid();
-//                    String name = contact.getName();
-//                    String number = contact.getNumber();
-//                    String relationship = contact.getRelationship();
-
-//                    c.setId(id);
-//                    c.setName(name);
-//                    c.setNumber(number);
-//                    c.setRelationship(relationship);
-
-//                    Contact contact = dataSnapshot1.getValue(Contact.class);
 
                     contactList.add(contact);
                 }
@@ -104,6 +93,7 @@ public class FamilyFragment extends Fragment {
                 mAdapter = new ContactAdapter(contactList);
                 mAdapter.notifyDataSetChanged();
 
+                //output
                 recyclerView.setAdapter(mAdapter);
             }
 
@@ -111,7 +101,6 @@ public class FamilyFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-
 
         });
 

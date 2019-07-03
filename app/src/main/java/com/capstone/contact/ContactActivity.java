@@ -185,8 +185,8 @@ public class ContactActivity extends AppCompatActivity {
                 String relationship = et_relationship.getText().toString();
 
                 Contact contact = new Contact(auth.getUid(), name, number, relationship);
-                databaseReference = FirebaseDatabase.getInstance().getReference().child("Contacts").child(auth.getUid());
-                //used id for temporary address, may need different id
+                databaseReference = FirebaseDatabase.getInstance().getReference().child("Contacts").child(auth.getUid() + name);
+                //file ID is uid + name, change to uid + number for more security
                 databaseReference.setValue(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -204,6 +204,10 @@ public class ContactActivity extends AppCompatActivity {
         });
         dialog.show();
         dialog.getWindow().setAttributes(lp);
+    }
+
+    public void onClickContact(View view){
+        startActivity(new Intent(this, ContactDetailsActivity.class));
     }
 }
 

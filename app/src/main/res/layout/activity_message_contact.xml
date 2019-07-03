@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/title"
+    tools:context="com.capstone.message.MessageContactActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="-26dp"
+        tools:layout_editor_absoluteY="-53dp">
+
+        <LinearLayout
+            android:id="@+id/linearLayout8"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Subject"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:theme="@style/EditText.White" />
+
+            <EditText
+                android:id="@+id/txtCSubject"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:theme="@style/EditText.White"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:layout_editor_absoluteY="0dp" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Message"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:theme="@style/EditText.White" />
+
+            <EditText
+                android:id="@+id/txtCMessage"
+                android:layout_width="match_parent"
+                android:layout_height="350dp"
+                android:gravity="top|left"
+                android:inputType="text"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:theme="@style/EditText.White" />
+
+            <Button
+                android:id="@+id/btnCSend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:background="@drawable/round_rect_shape"
+                android:text="@string/action_send"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:textSize="15sp"
+                android:theme="@style/EditText.White" />
+
+            <Button
+                android:id="@+id/btnCBack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:background="@drawable/round_rect_shape"
+                android:text="@string/action_back"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:textSize="15sp"
+                android:theme="@style/EditText.White" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>
