@@ -1,11 +1,16 @@
 package com.capstone.emergency;
 
 import android.Manifest;
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.fingerprint.FingerprintManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -19,10 +24,10 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.capstone.FingerprintHandler;
 import com.capstone.contact.ContactActivity;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.MainActivity;
@@ -31,14 +36,18 @@ import com.capstone.user.User;
 import com.capstone.user.UserDetailsActivity;
 import com.example.dana.capstone.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,20 +56,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-//import com.mikhaellopez.circularimageview.CircularImageView;
+import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private static final String TAG = "EmergencyActivity";
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
+
+    private LocationManager locationManager;
 
     //maps problem https://stackoverflow.com/questions/29441384/fusedlocationapi-getlastlocation-always-null
 
@@ -69,31 +78,31 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
-    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 15;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private boolean mLocationPermissionGranted;
+//    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+//    private static final int DEFAULT_ZOOM = 15;
+//    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+//    private boolean mLocationPermissionGranted;
 //    private LocationRequest locationRequest;
 //    private LocationCallback locationCallback;
 //
 //    // The geographical location where the device is currently located. That is, the last-known
 //    // location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
+//    private Location mLastKnownLocation;
 //    private GoogleApiClient mGoogleApiClient;
 
     private TextView name, age, gender, loc;
-    String address="address";
-    String city="city";
-    String state="state";
-    String country="country";
-    String postalCode="postalCode";
+    String address = "address";
+    String city = "city";
+    String state = "state";
+    String country = "country";
+    String postalCode = "postalCode";
     private DrawerLayout dl;
     private ActionBarDrawerToggle t;
     private NavigationView nv;
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth;
     private DatabaseReference databaseUser;
-    //private CircularImageView profilepic;
+    private CircularImageView profilepic;
     private Button btnPolice;
 
     private boolean isContinue = false;
@@ -101,13 +110,18 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     private Location mLastLocation;
     private double wayLatitude = 0.0, wayLongitude = 0.0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_emergency);
 
+        CheckPermission(); //check location permission
+//        fingerprintRead();
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         dl = findViewById(R.id.activity_emergency);
-        t = new ActionBarDrawerToggle(this, dl,R.string.Open, R.string.Close);
+        t = new ActionBarDrawerToggle(this, dl, R.string.Open, R.string.Close);
 
         dl.addDrawerListener(t);
         t.syncState();
@@ -119,8 +133,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
-                switch(id)
-                {
+                switch (id) {
                     case R.id.emergency:
                         Toast.makeText(EmergencyActivity.this, "Home", Toast.LENGTH_SHORT).show();
                         dl.closeDrawers();
@@ -158,12 +171,12 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 }
             }
         };
-        databaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(auth.getCurrentUser().getUid());
+        databaseUser = FirebaseDatabase.getInstance().getReference("Users").child(auth.getCurrentUser().getUid());
         name = findViewById(R.id.lblName);
         age = findViewById(R.id.lblAge);
-        gender =  findViewById(R.id.lblGender);
-        loc =  findViewById(R.id.lblAddress);
-        //profilepic = findViewById(R.id.imageView2);
+        gender = findViewById(R.id.lblGender);
+        loc = findViewById(R.id.lblAddress);
+        profilepic = findViewById(R.id.imageView2);
         btnPolice = findViewById(R.id.btnPolice);
 
         btnPolice.setOnClickListener(new View.OnClickListener() {
@@ -172,7 +185,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 Intent intent = new Intent(getBaseContext(), MessageActivity.class);
                 String lat = String.valueOf(wayLatitude);
                 String lon = String.valueOf(wayLongitude);
-                EmergencyLocation el = new EmergencyLocation(address, city, state, country, postalCode,lat,lon);
+                EmergencyLocation el = new EmergencyLocation(address, city, state, country, postalCode, lat, lon);
                 intent.putExtra("CURRENT_ID", uid);
                 intent.putExtra("CONTACT_ID", "Police");
                 intent.putExtra("NAME", name.getText());
@@ -181,23 +194,23 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 startActivity(intent);
             }
         });
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS},1);
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECEIVE_SMS},10);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if(t.onOptionsItemSelected(item))
+        if (t.onOptionsItemSelected(item))
             return true;
 
         return super.onOptionsItemSelected(item);
     }
+
     public void signOut() {
         auth.signOut();
     }
@@ -211,10 +224,11 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
                 name.setText(getString(R.string.full_name, user.getUserFirstName(), user.getUserLastName()));
-                age.setText(calcAge(user.getDob()));
+                //age.setText(calcAge(user.getDob()));
+                age.setText(user.getDob());
                 gender.setText(user.getGender());
                 String profile = user.getImage();
-                //Picasso.with(EmergencyActivity.this).load(profile).into(profilepic);
+                Picasso.with(EmergencyActivity.this).load(profile).fit().centerCrop().into(profilepic);
             }
 
             @Override
@@ -224,103 +238,42 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         });
     }
 
-    //code not compatible with older phones
-    public String calcAge (String dateBirth)
-    {
-        //LocalDate today = LocalDate.now();
-        Date today = Calendar.getInstance().getTime();
-        Date birth = null;
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
-        try {
-            birth = formatter.parse(dateBirth);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //LocalDate bday =  birth.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        //Period p = Period.between(bday, today);
-        long msDiff = today.getTime() - birth.getTime();
-        int p = (int)(msDiff / 1000 / 60 / 60 / 24 / 365.25);
-        return String.valueOf(p);
-    }
-
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
-        // Prompt the user for permission.
-        getLocationPermission();
-        // Turn on the My Location layer and the related control on the map.
-        updateLocationUI();
-
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
-    }
-    private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-            if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            wayLatitude = mLastKnownLocation.getLatitude();
-                            wayLongitude = mLastKnownLocation.getLongitude();
-                            getAddress();
-                        } else {
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch (SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    private void updateLocationUI() {
-        if (mMap == null) {
+//        // Prompt the user for permission.
+//        getLocationPermission();
+//        // Turn on the My Location layer and the related control on the map.
+//        updateLocationUI();
+//
+//        // Get the current location of the device and set the position of the map.
+//        getDeviceLocation();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        try {
-            if (mLocationPermissionGranted) {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
-            } else {
-                mMap.setMyLocationEnabled(false);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
-                getLocationPermission();
+        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if(location != null) {
+                    wayLatitude = location.getLatitude();
+                    wayLongitude = location.getLongitude();
+                    LatLng curL = new LatLng(wayLatitude, wayLongitude);
+                    mMap.addMarker(new MarkerOptions().position(curL)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curL, 18)); //18 zoom-in
+                    getAddressDetails();
+                }
             }
-        } catch (SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
+        });
     }
 
     public Address getAddress(double latitude,double longitude)
@@ -341,7 +294,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     }
 
-    public void getAddress()
+    public void getAddressDetails()
     {
 
         Address locationAddress=getAddress(wayLatitude,wayLongitude);
@@ -386,4 +339,11 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     }
 
+    public void CheckPermission() {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+        }
+    }
 }

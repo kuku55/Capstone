@@ -11,9 +11,9 @@
     android:id="@+id/relativeLayout2">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
+        android:id="@+id/recycler_view_family"
         android:layout_width="match_parent"
-        android:layout_height="406dp"
+        android:layout_height="wrap_content"
         android:scrollbars="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -40,7 +40,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="New Contact" />
+            android:text="New Contact"
+            android:onClick="onClickNewContact"/>
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

@@ -8,9 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.capstone.message.Message;
 import com.capstone.message.MessageActivity;
+import com.capstone.message.MessageContactActivity;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,6 +30,8 @@ public class ContactDetailsActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private Button send;
 
+    private String cName, cNumber, cRelationship;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,58 +39,78 @@ public class ContactDetailsActivity extends AppCompatActivity {
         name = findViewById(R.id.txtName);
         relationship = findViewById(R.id.txtRelationship);
         mobile = findViewById(R.id.txtNumber);
-        email = findViewById(R.id.txtEmail);
-        profileImage = findViewById(R.id.imageView2);
+//        email = findViewById(R.id.txtEmail);
+//        profileImage = findViewById(R.id.imageView2);
         auth = FirebaseAuth.getInstance();
-        final String uid = auth.getCurrentUser().getUid();
-        cid = getIntent().getExtras().get("id").toString();
-        databaseUser = FirebaseDatabase.getInstance().getReference("Contacts").child(uid).child(cid);
+//        final String uid = auth.getCurrentUser().getUid();
+//        cid = getIntent().getExtras().get("id").toString();
+        databaseUser = FirebaseDatabase.getInstance().getReference("Contacts");
         send = findViewById(R.id.btnSendMessage);
-        send.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getBaseContext(), MessageActivity.class);
-                intent.putExtra("CONTACT_ID", cid);
-                intent.putExtra("CURRENT_ID", uid);
-                startActivity(intent);
-                finish();
-            }
-        });
+//        send.setOnClickListener(new View.OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(getBaseContext(), MessageActivity.class);
+//                intent.putExtra("CURRENT_ID", uid);
+//                intent.putExtra("CONTACT_ID", cid);
+//                startActivity(intent);
+//                finish();
+//            }
+//        });
+
+        //gets data from Contact
+        cName = getIntent().getStringExtra("nameKey");
+        cNumber = getIntent().getStringExtra("numberKey");
+        cRelationship = getIntent().getStringExtra("relationshipKey");
+
+        name.setText("Name: " + cName);
+        mobile.setText("Number: " + cNumber);
+        relationship.setText("Relationship: " + cRelationship);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        databaseUser.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Contact con = dataSnapshot.getValue(Contact.class);
-                relationship.setText(getString(R.string.update_relationship, con.getRelationship()));
-                DatabaseReference user = FirebaseDatabase.getInstance().getReference("Users").child(cid);
-                user.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-                        name.setText(getString(R.string.update_name, user.getUserLastName(), user.getUserFirstName()));
-                        mobile.setText(getString(R.string.update_number, user.getMobileNumber()));
-                        email.setText(getString(R.string.update_email, user.getEmail()));
-                        String profile = user.getImage();
-                        Picasso.with(ContactDetailsActivity.this).load(profile).into(profileImage);
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        databaseUser.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                Contact con = dataSnapshot.getValue(Contact.class);
+//                relationship.setText(getString(R.string.update_relationship, con.getRelationship()));
+//                DatabaseReference user = FirebaseDatabase.getInstance().getReference("Users").child(cid);
+//                user.addValueEventListener(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        User user = dataSnapshot.getValue(User.class);
+//                        name.setText(getString(R.string.update_name, user.getUserLastName(), user.getUserFirstName()));
+//                        mobile.setText(getString(R.string.update_number, user.getMobileNumber()));
+//                        email.setText(getString(R.string.update_email, user.getEmail()));
+//                        String profile = user.getImage();
+//                        Picasso.with(ContactDetailsActivity.this).load(profile).into(profileImage);
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//
+//                });
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
 
-                    }
-
-                });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+    //passes value to Message Activity
+    public void onClickMessage(View v){
+        //startActivity(new Intent(ContactDetailsActivity.this, MessageActivity.class));
+        Intent intent = new Intent(this, MessageContactActivity.class);
+        intent.putExtra("nameKey", cName);
+        intent.putExtra("numberKey", cNumber);
+        intent.putExtra("relationshipKey", cRelationship);
+        startActivity(intent);
     }
 }

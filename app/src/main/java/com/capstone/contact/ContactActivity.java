@@ -1,5 +1,6 @@
 package com.capstone.contact;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,15 +14,29 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.capstone.emergency.EmergencyActivity;
 import com.capstone.user.UserDetailsActivity;
 import com.example.dana.capstone.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ContactActivity extends AppCompatActivity {
@@ -33,11 +48,19 @@ public class ContactActivity extends AppCompatActivity {
     private ActionBarDrawerToggle t;
     private NavigationView nv;
 
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference databaseReference;
+
+    private static final String TAG = "ContactActivity";
+
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact);
+
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        databaseReference = firebaseDatabase.getReference().child("Contacts");
 
         dl = findViewById(R.id.activity_contact);
         t = new ActionBarDrawerToggle(this, dl, R.string.Close, R.string.Open);
@@ -127,8 +150,64 @@ public class ContactActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
     public void signOut() {
         auth.signOut();
+    }
+
+    public void onClickNewContact(View v){
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // before
+        dialog.setContentView(R.layout.dialog_add_contact);
+        dialog.setCancelable(true);
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+        final EditText et_name = (EditText) dialog.findViewById(R.id.et_name);
+        final EditText et_number = (EditText) dialog.findViewById(R.id.et_number);
+        final EditText et_relationship = dialog.findViewById(R.id.et_relationship);
+
+        ((ImageButton) dialog.findViewById(R.id.btn_close)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        ((Button) dialog.findViewById(R.id.btn_save)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                String name = et_name.getText().toString();
+                String number = et_number.getText().toString();
+                String relationship = et_relationship.getText().toString();
+
+                Contact contact = new Contact(auth.getUid(), name, number, relationship);
+                databaseReference = FirebaseDatabase.getInstance().getReference().child("Contacts").child(auth.getUid() + name);
+                //file ID is uid + name, change to uid + number for more security
+                databaseReference.setValue(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(ContactActivity.this, "Contact Created!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(ContactActivity.this, "Error on creating contact.", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, e.toString());
+                    }
+                });
+            }
+        });
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+    }
+
+    public void onClickContact(View view){
+        startActivity(new Intent(this, ContactDetailsActivity.class));
     }
 }
 
