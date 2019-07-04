@@ -112,7 +112,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        ((Activity)context).finish();
+//                        ((Activity)context).finish();
                         Toast.makeText(context, "Message sent!", Toast.LENGTH_SHORT).show();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -122,6 +122,11 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                                 Toast.LENGTH_LONG).show();
                     }
                 });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show();
             }
         });
 
