@@ -7,9 +7,11 @@ import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -42,6 +44,15 @@ public class MessageContactActivity extends AppCompatActivity {
 
     private FingerprintManager fingerprintManager;
     private KeyguardManager keyguardManager;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0;
+
+    private Date currentTime;
+    private String messageID;
+    private String uid;
+    private String message;
+    private String subject;
+    private String receiver;
+    private String dateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +70,7 @@ public class MessageContactActivity extends AppCompatActivity {
         cNumber = getIntent().getStringExtra("numberKey");
         cRelationship = getIntent().getStringExtra("relationshipKey");
 
+
         fingerprintRead();
 
         btnCSend.setOnClickListener(new View.OnClickListener() {
@@ -66,13 +78,13 @@ public class MessageContactActivity extends AppCompatActivity {
             public void onClick(View v) {
                 databaseReference = FirebaseDatabase.getInstance().getReference();
 
-                Date currentTime = Calendar.getInstance().getTime();
-                String messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
-                String uid = auth.getUid();
-                String message = txtCMessage.getText().toString().trim();
-                String subject = txtCSubject.getText().toString().trim();
-                String receiver = cName; //changeable to cID + cName
-                String dateTime = currentTime.toString().trim();
+                currentTime = Calendar.getInstance().getTime();
+                messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
+                uid = auth.getUid();
+                message = txtCMessage.getText().toString().trim();
+                subject = txtCSubject.getText().toString().trim();
+                receiver = cName; //changeable to cID + cName
+                dateTime = currentTime.toString().trim();
 
                 MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, dateTime);
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -81,6 +93,7 @@ public class MessageContactActivity extends AppCompatActivity {
                         Toast.makeText(MessageContactActivity.this, "Message has been sent.", Toast.LENGTH_SHORT).show();
                         txtCSubject.setText("");
                         txtCMessage.setText("");
+                        sendSMSMessage();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -134,5 +147,41 @@ public class MessageContactActivity extends AppCompatActivity {
                 fingerprintHandler.startAuth(fingerprintManager, null);
             }
         }
+    }
+
+    // This Method for Send a message
+    protected void sendSMSMessage() {
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.SEND_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.SEND_SMS},
+                        MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(cNumber, null, message, null, null);
+                    Toast.makeText(getApplicationContext(), "SMS sent.",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            cNumber + " " + message, Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
+
     }
 }
