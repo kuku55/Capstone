@@ -266,10 +266,13 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
             @Override
             public void onSuccess(Location location) {
                 if(location != null) {
-                    LatLng curL = new LatLng(location.getLatitude(), location.getLongitude());
+                    wayLatitude = location.getLatitude();
+                    wayLongitude = location.getLongitude();
+                    LatLng curL = new LatLng(wayLatitude, wayLongitude);
                     mMap.addMarker(new MarkerOptions().position(curL)
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curL, 18)); //18 zoom-in
+                    getAddressDetails();
                 }
             }
         });
@@ -293,7 +296,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     }
 
-    public void getAddress()
+    public void getAddressDetails()
     {
 
         Address locationAddress=getAddress(wayLatitude,wayLongitude);

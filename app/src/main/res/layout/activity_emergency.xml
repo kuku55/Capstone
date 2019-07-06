@@ -14,35 +14,24 @@
         android:padding="@dimen/activity_horizontal_margin">
 
         <LinearLayout
-            android:id="@+id/linearLayout3"
-            android:layout_width="368dp"
-            android:layout_height="120dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_width="match_parent"
+            android:layout_height="142dp">
 
             <com.mikhaellopez.circularimageview.CircularImageView
                 android:id="@+id/imageView2"
-                android:layout_width="270dp"
-                android:layout_height="match_parent"
+                android:layout_width="336dp"
+                android:layout_height="129dp"
                 android:layout_weight="1" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/lblName"
-                    android:layout_width="match_parent"
+                    android:layout_width="209dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="@string/UserName"
@@ -53,31 +42,35 @@
 
                 <TextView
                     android:id="@+id/lblAge"
-                    android:layout_width="match_parent"
+                    android:layout_width="209dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="@string/Age"
                     android:textColor="@color/white"
-                    android:textSize="20sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/lblGender"
-                    android:layout_width="match_parent"
+                    android:layout_width="209dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="@string/Gender"
                     android:textColor="@color/white"
-                    android:textSize="20sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/lblAddress"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:layout_width="209dp"
+                    android:layout_height="73dp"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:maxLines="1"
                     android:text="@string/email"
+                    android:textAlignment="viewStart"
                     android:textColor="@color/white"
-                    android:textSize="20sp" />
+                    android:textSize="15sp" />
             </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
@@ -86,7 +79,7 @@
             android:layout_height="64dp"
             android:layout_marginStart="0dp"
             android:layout_marginLeft="0dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="15dp"
             android:layout_marginEnd="0dp"
             android:layout_marginRight="0dp"
             android:layout_marginBottom="19dp"
@@ -102,20 +95,20 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/round_rect_shape"
+                android:text="Police"
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/white"
-                android:theme="@style/EditText.White"
-                android:text="Police" />
+                android:theme="@style/EditText.White" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/linearLayout5"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="446dp"
             android:layout_marginStart="0dp"
+            android:layout_marginLeft="0dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="0dp"
-            android:layout_marginLeft="0dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -123,14 +116,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
             app:layout_constraintVertical_bias="0.0">
+
             <fragment xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
                 android:id="@+id/map"
-                tools:context="com.capstone.MapsActivity"
-                android:name="com.google.android.gms.maps.SupportMapFragment"/>
-    </LinearLayout>
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="436dp"
+                tools:context="com.capstone.MapsActivity" />
+        </LinearLayout>
     </LinearLayout>
 
     <android.support.design.widget.NavigationView

@@ -28,6 +28,7 @@ import java.util.List;
 public class UnreadFragment extends Fragment {
     private MessageAdapter mAdapter;
     private DatabaseReference databaseMessages;
+    private DatabaseReference searchDetails;
     private FirebaseAuth auth;
     private String id;
     private RecyclerView recyclerView;
