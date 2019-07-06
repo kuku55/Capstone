@@ -70,6 +70,8 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private CameraPosition mCameraPosition;
 
     private LocationManager locationManager;
+    private FingerprintManager fingerprintManager;
+    private KeyguardManager keyguardManager;
 
     //maps problem https://stackoverflow.com/questions/29441384/fusedlocationapi-getlastlocation-always-null
 
@@ -117,7 +119,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         setContentView(R.layout.activity_emergency);
 
         CheckPermission(); //check location permission
-//        fingerprintRead();
+        fingerprintRead();
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         dl = findViewById(R.id.activity_emergency);
@@ -346,4 +348,37 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                     android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
         }
     }
+
+    private void fingerprintRead() {
+        //checks if SDK is Marshmallow or above
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+
+            fingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
+            keyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+
+            if(!fingerprintManager.isHardwareDetected()){
+
+                Toast.makeText(this, "No fingerprint scanner detected.", Toast.LENGTH_LONG).show();
+
+            } else if(ContextCompat.checkSelfPermission(this, Manifest.permission.USE_FINGERPRINT) !=
+                    PackageManager.PERMISSION_GRANTED){
+
+                Toast.makeText(this, "Permission not granted to use the Fingerprint Scanner", Toast.LENGTH_LONG).show();
+
+            } else if (!keyguardManager.isKeyguardSecure()) {
+
+                Toast.makeText(this, "Add lock to your device.", Toast.LENGTH_LONG).show();
+
+            }else if(!fingerprintManager.hasEnrolledFingerprints()){
+
+                Toast.makeText(this, "Add a fingerprint in the device.", Toast.LENGTH_LONG).show();
+
+            } else {
+
+                FingerprintHandler fingerprintHandler = new FingerprintHandler(this);
+                fingerprintHandler.startAuth(fingerprintManager, null);
+            }
+        }
+    }
+
 }
