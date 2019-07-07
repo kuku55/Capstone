@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity{
         // set the view now
         setContentView(R.layout.activity_main);
 
-        inputEmail = findViewById(R.id.email);
+        inputEmail = findViewById(R.id.txtEmail);
         inputPassword = findViewById(R.id.password);
         progressBar = findViewById(R.id.progressBar);
         btnSignup = findViewById(R.id.btn_signup);
@@ -63,15 +63,13 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-/*
         btnReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
+                startActivity(new Intent(MainActivity.this, PasswordResetActivity.class));
             }
         });
 
-*/
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -75,13 +75,13 @@ public class SignUpActivity extends AppCompatActivity{
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         auth = FirebaseAuth.getInstance();
 
-        btnSignIn = findViewById(R.id.sign_in_button);
-        btnSignUp = findViewById(R.id.sign_up_button);
+        btnSignIn = findViewById(R.id.return_button);
+        btnSignUp = findViewById(R.id.btn_reset_pass);
         inputFirstname = findViewById(R.id.firstname);
         inputLastname = findViewById(R.id.lastname);
         inputBirth = findViewById(R.id.dateofbirth);
         radioGenderGroup = findViewById(R.id.rdoGender);
-        inputEmail = findViewById(R.id.email);
+        inputEmail = findViewById(R.id.txtEmail);
         inputPassword = findViewById(R.id.password);
         inputnumber = findViewById(R.id.contactnumber);
         progressBar = findViewById(R.id.progressBar);
