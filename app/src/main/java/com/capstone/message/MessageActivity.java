@@ -107,7 +107,6 @@ public class MessageActivity extends AppCompatActivity {
                     name = getIntent().getStringExtra("NAME");
                     age = getIntent().getStringExtra("AGE");
                     EmergencyLocation el = (EmergencyLocation) getIntent().getSerializableExtra("EMERGENCY");
-                    subject.setText(el.getAddress());
                     getNumber = FirebaseDatabase.getInstance().getReference("Users").child(uid);
                     JSONObject request = new JSONObject();
                     try {
@@ -145,7 +144,8 @@ public class MessageActivity extends AppCompatActivity {
                     // Access the RequestQueue through your singleton class.
                     MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
                     smsMessage = "Sender: " + name + "\nUser Location: " + el.getAddress() + "\nSubject: " + sub + "\n\n" + msg + "\nSent on: " + currentDate();
-                    sendSMSMessage();
+                    requestSmsPermission();
+                    finish();
             }
         });
     }
@@ -199,24 +199,39 @@ public class MessageActivity extends AppCompatActivity {
         }
     }
 
+    private void requestSmsPermission() {
+
+        // check permission is given
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            // request permission (see result in onRequestPermissionsResult() method)
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.SEND_SMS},
+                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+        } else {
+            // permission already granted run sms send
+            sendSms(cNumber, smsMessage);
+        }
+    }
+
     @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_SEND_SMS: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    SmsManager smsManager = SmsManager.getDefault();
-                    smsManager.sendTextMessage(cNumber, null, smsMessage, null, null);
-                    Toast.makeText(getApplicationContext(), "SMS sent.",
-                            Toast.LENGTH_LONG).show();
+
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted
+                    sendSms(cNumber, smsMessage);
                 } else {
-                    Toast.makeText(getApplicationContext(),
-                            cNumber + " " + message, Toast.LENGTH_LONG).show();
-                    return;
+                    // permission denied
                 }
+                return;
             }
         }
+    }
 
+    private void sendSms(String phoneNumber, String message){
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, message, null, null);
     }
 
     public String currentDate()
