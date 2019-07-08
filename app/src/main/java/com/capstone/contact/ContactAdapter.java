@@ -16,7 +16,7 @@ import java.util.List;
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHolder> {
 
     private List<Contact> contactsList;
-    String conName, conNumber, conRelationship;
+    String conID, conName, conNumber, conRelationship;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name, number, relationship;
@@ -54,11 +54,13 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHo
         holder.familyLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                conID = con.getId();
                 conName = con.getName();
                 conNumber = con.getNumber();
                 conRelationship = con.getRelationship();
 
                 Intent intent = new Intent(v.getContext(), ContactDetailsActivity.class);
+                intent.putExtra("idKey", conID);
                 intent.putExtra("nameKey", conName);
                 intent.putExtra("numberKey", conNumber);
                 intent.putExtra("relationshipKey", conRelationship);

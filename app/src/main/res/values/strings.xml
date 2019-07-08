@@ -11,6 +11,7 @@
     <string name="birth">-Select Date of Birth-</string>
     <string name="action_sign_in_short">Register</string>
     <string name="action_save_profile">Save</string>
+    <string name="action_sendreset">Send email</string>
     <string name="email">Email</string>
     <string name="firstname">First Name</string>
     <string name="lastname">Last Name</string>

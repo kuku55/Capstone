@@ -33,4 +33,6 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:layout_below="@id/con_number" />
+
+
 </RelativeLayout>

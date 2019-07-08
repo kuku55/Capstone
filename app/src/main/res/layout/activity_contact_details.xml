@@ -20,6 +20,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0">
 
+        <ImageButton
+            android:id="@+id/btnDeleteContact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:background="@android:color/transparent"
+            android:tint="@color/white"
+            android:src="@drawable/ic_close"
+            android:onClick="onClickDeleteContact"/>
+
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="wrap_content"

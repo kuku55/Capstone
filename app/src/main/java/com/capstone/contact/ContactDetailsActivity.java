@@ -6,14 +6,18 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.capstone.message.Message;
 import com.capstone.message.MessageActivity;
 import com.capstone.message.MessageContactActivity;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,16 +30,18 @@ public class ContactDetailsActivity extends AppCompatActivity {
     private TextView name, relationship, mobile, email;
     private DatabaseReference databaseUser;
     private ImageView profileImage;
-    private String cid;
+    //private String cid;
     private FirebaseAuth auth;
     private Button send;
+    private ImageButton btnDeleteContact;
 
-    private String cName, cNumber, cRelationship;
+    private String cID, cName, cNumber, cRelationship;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_details);
+        btnDeleteContact = findViewById(R.id.btnDeleteContact);
         name = findViewById(R.id.txtName);
         relationship = findViewById(R.id.txtRelationship);
         mobile = findViewById(R.id.txtNumber);
@@ -59,6 +65,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
 //        });
 
         //gets data from Contact
+        cID = getIntent().getStringExtra("idKey");
         cName = getIntent().getStringExtra("nameKey");
         cNumber = getIntent().getStringExtra("numberKey");
         cRelationship = getIntent().getStringExtra("relationshipKey");
@@ -112,5 +119,22 @@ public class ContactDetailsActivity extends AppCompatActivity {
         intent.putExtra("numberKey", cNumber);
         intent.putExtra("relationshipKey", cRelationship);
         startActivity(intent);
+    }
+
+    public void onClickDeleteContact(View v){
+        databaseUser = FirebaseDatabase.getInstance().getReference("Contacts").child(cID + cName);
+        databaseUser.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(ContactDetailsActivity.this, "Successfully Deleted Contact", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                else{
+                    Toast.makeText(ContactDetailsActivity.this, "There's an error in deleting the contact\n" +
+                                    task.getException().toString(), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }
