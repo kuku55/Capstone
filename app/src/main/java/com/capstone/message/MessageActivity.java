@@ -6,8 +6,10 @@ import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,12 +24,14 @@ import com.capstone.json.MySingleton;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.SignUpActivity;
 import com.example.dana.capstone.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -37,6 +41,7 @@ public class MessageActivity extends AppCompatActivity {
     private String cid;
     private String uid;
     private String name;
+    private String cNumber = "639390010572"; //police number.
     private String age;
     private EditText message, subject;
     private DatabaseReference databaseMessage;
@@ -52,6 +57,12 @@ public class MessageActivity extends AppCompatActivity {
     private static final String KEY_LONGITUDE = "longitude";
     private static final String KEY_SUBJECT = "subject";
     private static final String KEY_MESSAGE = "message";
+    private FirebaseAuth auth;
+    private DatabaseReference getNumber;
+    private String msg;
+    private String sub;
+    private String smsMessage;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0;
 
     private FingerprintManager fingerprintManager;
     private KeyguardManager keyguardManager;
@@ -89,23 +100,22 @@ public class MessageActivity extends AppCompatActivity {
                 String presentDate = df.format(c);
                 databaseMessage = FirebaseDatabase.getInstance().getReference().child("Messages").child(uid).child(cid);
                 String pushId = databaseMessage.push().getKey();
-                String msg = message.getText().toString().trim();
-                String sub = subject.getText().toString().trim();
+                msg = message.getText().toString().trim();
+                sub = subject.getText().toString().trim();
                 String isRead = "unread";
 
-                if(cid.equals("Police")){
                     name = getIntent().getStringExtra("NAME");
                     age = getIntent().getStringExtra("AGE");
                     EmergencyLocation el = (EmergencyLocation) getIntent().getSerializableExtra("EMERGENCY");
                     subject.setText(el.getAddress());
-
+                    getNumber = FirebaseDatabase.getInstance().getReference("Users").child(uid);
                     JSONObject request = new JSONObject();
                     try {
                         //Populate the request parameters
                         request.put(KEY_UID, uid);
                         request.put(KEY_NAME,name);
-                        request.put(KEY_MESSAGE, message.getText());
-                        request.put(KEY_SUBJECT, subject.getText());
+                        request.put(KEY_MESSAGE, msg);
+                        request.put(KEY_SUBJECT, sub);
                         request.put(KEY_ADDRESS, el.getAddress());
                         request.put(KEY_CITY, el.getCity());
                         request.put(KEY_STATE, el.getState());
@@ -134,13 +144,8 @@ public class MessageActivity extends AppCompatActivity {
                             });
                     // Access the RequestQueue through your singleton class.
                     MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
-                    finish();
-                }else{
-                    Message mg = new Message(pushId, uid, cid, msg, presentDate, sub, isRead);
-                    databaseMessage.child(pushId).setValue(mg);
-                    Toast.makeText(getBaseContext(), "Message sent!", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
+                    smsMessage = "Sender: " + name + "\nUser Location: " + el.getAddress() + "\nSubject: " + sub + "\n\n" + msg + "\nSent on: " + currentDate();
+                    sendSMSMessage();
             }
         });
     }
@@ -175,5 +180,49 @@ public class MessageActivity extends AppCompatActivity {
                 fingerprintHandler.startAuth(fingerprintManager, null);
             }
         }
+    }
+
+    protected void sendSMSMessage() {
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.SEND_SMS)) {
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        cNumber + " " + message, Toast.LENGTH_LONG).show();
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.SEND_SMS},
+                        MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(cNumber, null, smsMessage, null, null);
+                    Toast.makeText(getApplicationContext(), "SMS sent.",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            cNumber + " " + message, Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
+
+    }
+
+    public String currentDate()
+    {
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 }
