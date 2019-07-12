@@ -1,5 +1,6 @@
 package com.capstone.login;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,18 +12,21 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.capstone.emergency.Emergency;
 import com.capstone.emergency.EmergencyActivity;
 import com.example.dana.capstone.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity{
 
 
     private EditText inputEmail, inputPassword;
     private FirebaseAuth auth;
+    private FirebaseUser firebaseUser;
     private ProgressBar progressBar;
     private Button btnSignup, btnLogin, btnReset;
 
@@ -106,9 +110,16 @@ public class MainActivity extends AppCompatActivity{
                                         Toast.makeText(MainActivity.this, getString(R.string.auth_failed), Toast.LENGTH_LONG).show();
                                     }
                                 } else {
-                                    Intent intent = new Intent(MainActivity.this, EmergencyActivity.class);
-                                    startActivity(intent);
-                                    finish();
+                                    firebaseUser = auth.getCurrentUser();
+                                    if(firebaseUser.isEmailVerified()){
+                                        Toast.makeText(MainActivity.this, "Signing in.", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(MainActivity.this, EmergencyActivity.class)
+                                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                                        finish();
+                                    }else{
+                                        Toast.makeText(MainActivity.this, "Please verify your e-mail to sign in.", Toast.LENGTH_SHORT).show();
+                                        auth.signOut();
+                                    }
                                 }
                             }
                         });
