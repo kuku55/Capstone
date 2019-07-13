@@ -18,9 +18,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.capstone.FingerprintHandler;
 import com.capstone.contact.Contact;
 import com.capstone.contact.ContactDetailsActivity;
+import com.capstone.json.MySingleton;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -29,8 +34,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 public class MessageContactActivity extends AppCompatActivity {
 
@@ -46,13 +56,17 @@ public class MessageContactActivity extends AppCompatActivity {
     private KeyguardManager keyguardManager;
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0;
 
+    private static final String KEY_UID = "uID";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_SUBJECT = "subject";
+
     private Date currentTime;
     private String messageID;
     private String uid;
     private String message;
     private String subject;
     private String receiver;
-    private String dateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,14 +93,45 @@ public class MessageContactActivity extends AppCompatActivity {
                 databaseReference = FirebaseDatabase.getInstance().getReference();
 
                 currentTime = Calendar.getInstance().getTime();
+                SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+                String presentDate = df.format(currentTime);
                 messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
                 uid = auth.getUid();
                 message = txtCMessage.getText().toString().trim();
                 subject = txtCSubject.getText().toString().trim();
                 receiver = cName; //changeable to cID + cName
-                dateTime = currentTime.toString().trim();
 
-                MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, dateTime);
+                JSONObject request = new JSONObject();
+                try {
+                    //Populate the request parameters
+                    request.put(KEY_UID, uid);
+                    request.put(KEY_NAME, cName);
+                    request.put(KEY_MESSAGE, message);
+                    request.put(KEY_SUBJECT, subject);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(MessageContactActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                }
+                String register_url = "https://e-ligtas.000webhostapp.com/json/emergency.php";
+                JsonObjectRequest jsArrayRequest = new JsonObjectRequest
+                        (Request.Method.POST, register_url, request, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                Toast.makeText(getApplicationContext(), "Emergency Sent", Toast.LENGTH_SHORT).show();
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+
+                            }
+                        });
+                // Access the RequestQueue through your singleton class.
+                MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
+                finish();
+
+                MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, presentDate);
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
