@@ -8,6 +8,7 @@
     <string name="Gender">Gender</string>
     <string name="Open">Open</string>
     <string name="Close">Close</string>
+    <string name="Location">Location</string>
     <string name="birth">-Select Date of Birth-</string>
     <string name="action_sign_in_short">Register</string>
     <string name="action_save_profile">Save</string>

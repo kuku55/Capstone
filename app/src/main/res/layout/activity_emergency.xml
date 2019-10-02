@@ -8,12 +8,14 @@
     android:background="@color/title">
 
     <LinearLayout
+        android:id="@+id/ll_emergency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/activity_horizontal_margin">
 
         <LinearLayout
+            android:id="@+id/linearLayout3"
             android:layout_width="match_parent"
             android:layout_height="142dp">
 
@@ -63,10 +65,9 @@
                     android:layout_width="209dp"
                     android:layout_height="73dp"
                     android:ellipsize="end"
-                    android:gravity="start"
+                    android:gravity="center"
                     android:maxLines="1"
-                    android:text="@string/email"
-                    android:textAlignment="viewStart"
+                    android:text="@string/Location"
                     android:textColor="@color/white"
                     android:textSize="15sp" />
             </LinearLayout>

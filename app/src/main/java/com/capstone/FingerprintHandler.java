@@ -9,11 +9,13 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.location.Location;
 import android.os.CancellationSignal;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +50,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     private Context context;
     private FirebaseAuth auth;
     private String cName, cNumber, cRelationship;
+    private LinearLayout llEmergency;
     private DatabaseReference databaseReference;
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
@@ -164,7 +167,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                             (Request.Method.POST, register_url, request, new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
-                                    Toast.makeText(context.getApplicationContext(), "Emergency Sent", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(context.getApplicationContext(), "Emergency Sent", Toast.LENGTH_SHORT).show();
                                 }
                             }, new Response.ErrorListener() {
 
@@ -183,13 +186,36 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                     @Override
                     public void onSuccess(Void aVoid) {
 //                        ((Activity)context).finish();
-                        Toast.makeText(context, "Message sent!", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(context, "Message sent!", Toast.LENGTH_SHORT).show();
+
+                        //snackbar for sending message
+                        final Snackbar snackbar = Snackbar
+                                .make(((Activity) context).findViewById(R.id.ll_emergency), "Message sent!",
+                                        Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        //leave empty
+                                    }
+                                });
+                        snackbar.show();
+
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(context, "There's an error in sending the message, please try again.\n" + e.toString(),
-                                Toast.LENGTH_LONG).show();
+//                        Toast.makeText(context, "There's an error in sending the message, please try again.\n" + e.toString(),
+//                                Toast.LENGTH_LONG).show();
+                        //snackbar for error in sending message
+                        final Snackbar snackbar = Snackbar
+                                .make(((Activity) context).findViewById(R.id.ll_emergency),
+                                        "There's an error in sending the message, please try again.",
+                                        Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        //leave empty
+                                    }
+                                });
+                        snackbar.show();
                     }
                 });
             }
