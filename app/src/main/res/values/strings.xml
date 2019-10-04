@@ -81,4 +81,17 @@
         <item>Family</item>
         <item>Friend</item>
     </string-array>
+    <string-array name="type">
+        <item>Emergency</item>
+        <item>Theft</item>
+        <item>Property Damage</item>
+        <item>Robbery</item>
+        <item>Threat</item>
+        <item>Physical Injury</item>
+        <item>Shooting</item>
+        <item>Land Dispute</item>
+        <item>Rental Dispute</item>
+        <item>Homicide</item>
+        <item>Cybercrime</item>
+    </string-array>
 </resources>

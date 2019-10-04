@@ -9,8 +9,11 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -29,16 +32,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
-public class MessageActivity extends AppCompatActivity {
+public class MessageActivity extends AppCompatActivity{
     private String cid;
     private String uid;
     private String name;
     private String age;
-    private EditText message, subject;
+    private EditText message;
+    private Spinner subject;
     private DatabaseReference databaseMessage;
     private Button send, back;
     private static final String KEY_UID = "uID";
@@ -67,7 +73,22 @@ public class MessageActivity extends AppCompatActivity {
         cid = getIntent().getStringExtra("CONTACT_ID");
         uid = getIntent().getStringExtra("CURRENT_ID");
         message = findViewById(R.id.txtMessage);
-        subject = findViewById(R.id.txtSubject);
+        subject = findViewById(R.id.spnSubject);
+
+        // Spinner Drop down elements
+
+        List<String> categories = Arrays.asList(getResources().getStringArray(R.array.type));
+
+        // Creating adapter for spinner
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
+
+        // Drop down layout style - list view with radio button
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // attaching data adapter to spinner
+        subject.setAdapter(dataAdapter);
+
+
         back = findViewById(R.id.btnBack);
         //name = getIntent().getStringExtra("NAME");
         //age = getIntent().getStringExtra("AGE");
@@ -90,7 +111,7 @@ public class MessageActivity extends AppCompatActivity {
                 databaseMessage = FirebaseDatabase.getInstance().getReference().child("Messages").child(uid).child(cid);
                 String pushId = databaseMessage.push().getKey();
                 String msg = message.getText().toString().trim();
-                String sub = subject.getText().toString().trim();
+                String sub = subject.getSelectedItem().toString().trim();
                 String isRead = "unread";
 
                 if(sub.isEmpty()){
@@ -105,15 +126,14 @@ public class MessageActivity extends AppCompatActivity {
                     name = getIntent().getStringExtra("NAME");
                     age = getIntent().getStringExtra("AGE");
                     EmergencyLocation el = (EmergencyLocation) getIntent().getSerializableExtra("EMERGENCY");
-                    subject.setText(el.getAddress());
 
                     JSONObject request = new JSONObject();
                     try {
                         //Populate the request parameters
                         request.put(KEY_UID, uid);
                         request.put(KEY_NAME,name);
-                        request.put(KEY_MESSAGE, message.getText());
-                        request.put(KEY_SUBJECT, subject.getText());
+                        request.put(KEY_MESSAGE, msg);
+                        request.put(KEY_SUBJECT, sub);
                         request.put(KEY_ADDRESS, el.getAddress());
                         request.put(KEY_CITY, el.getCity());
                         request.put(KEY_STATE, el.getState());
