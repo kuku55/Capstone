@@ -93,6 +93,14 @@ public class MessageActivity extends AppCompatActivity {
                 String sub = subject.getText().toString().trim();
                 String isRead = "unread";
 
+                if(sub.isEmpty()){
+                    sub = "Emergency";
+                }
+
+                if(msg.isEmpty()){
+                    msg = "Emergency at " + c + presentDate;
+                }
+
                 if(cid.equals("Police")){
                     name = getIntent().getStringExtra("NAME");
                     age = getIntent().getStringExtra("AGE");

@@ -90,7 +90,34 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
 
-            <Button
+            <TextView
+                android:id="@+id/lblPolice"
+                android:layout_width="209dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="Police:"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btnPoliceCall"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/round_rect_shape"
+                android:text="Police"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/white"
+                android:layout_marginEnd="10dp"
+                android:backgroundTint="@android:color/holo_green_dark"
+                android:src="@drawable/ic_call_black_24dp"
+                android:tint="@android:color/white"
+                android:theme="@style/EditText.White" />
+
+            <android.support.design.widget.FloatingActionButton
                 android:id="@+id/btnPolice"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -99,6 +126,9 @@
                 android:text="Police"
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/white"
+                android:layout_marginStart="10dp"
+                android:src="@drawable/ic_mail_black_24dp"
+                android:tint="@android:color/white"
                 android:theme="@style/EditText.White" />
         </LinearLayout>
 

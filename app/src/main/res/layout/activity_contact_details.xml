@@ -106,30 +106,39 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
             android:layout_weight="1"
             android:orientation="horizontal"
+            android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
-            <Button
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btnCall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="start"
+                android:layout_marginEnd="10dp"
+                android:src="@drawable/ic_call_black_24dp"
+                android:tint="@android:color/white"
+                android:onClick="onClickCall"
+                android:backgroundTint="@android:color/holo_green_dark"/>
+
+            <android.support.design.widget.FloatingActionButton
                 android:id="@+id/btnSendMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/round_rect_shape"
-                android:text="@string/action_send"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"
-                android:theme="@style/EditText.White"
-                android:textSize="10sp"
-                android:onClick="onClickMessage"/>
+                android:layout_marginStart="10dp"
+                android:src="@drawable/ic_mail_black_24dp"
+                android:tint="@android:color/white"
+                android:onClick="onClickMessage"
+                android:layout_gravity="end" />
+
         </LinearLayout>
+
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

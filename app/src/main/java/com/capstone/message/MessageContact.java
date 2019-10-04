@@ -13,6 +13,15 @@ public class MessageContact {
     }
 
     public MessageContact(String message_id, String uid, String subject, String message, String receiver, String datetimeSent) {
+
+        if(subject.isEmpty()){
+            subject = "Emergency";
+        }
+
+        if(message.isEmpty()){
+            message = "Emergency sent at " + datetimeSent;
+        }
+
         this.message_id = message_id;
         this.uid = uid;
         this.subject = subject;

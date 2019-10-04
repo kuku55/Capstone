@@ -22,6 +22,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.capstone.emergency.EmergencyActivity;
@@ -168,7 +169,7 @@ public class ContactActivity extends AppCompatActivity {
 
         final EditText et_name = (EditText) dialog.findViewById(R.id.et_name);
         final EditText et_number = (EditText) dialog.findViewById(R.id.et_number);
-        final EditText et_relationship = dialog.findViewById(R.id.et_relationship);
+        final Spinner sp_relationship = dialog.findViewById(R.id.spn_relationship);
 
         ((ImageButton) dialog.findViewById(R.id.btn_close)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -182,7 +183,7 @@ public class ContactActivity extends AppCompatActivity {
             public void onClick(final View v) {
                 String name = et_name.getText().toString();
                 String number = et_number.getText().toString();
-                String relationship = et_relationship.getText().toString();
+                String relationship = sp_relationship.getSelectedItem().toString();
 
                 Contact contact = new Contact(auth.getUid(), name, number, relationship);
                 databaseReference = FirebaseDatabase.getInstance().getReference().child("Contacts").child(auth.getUid() + name);

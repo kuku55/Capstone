@@ -132,6 +132,13 @@ public class MessageContactActivity extends AppCompatActivity {
                 finish();
 
                 MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, presentDate);
+                if(subject.isEmpty()){
+                    subject = "Emergency";
+                }
+
+                if(message.isEmpty()){
+                    message = "Emergency at " + currentTime + presentDate;
+                }
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {

@@ -10,9 +10,11 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -29,6 +31,7 @@ import android.widget.Toast;
 
 import com.capstone.FingerprintHandler;
 import com.capstone.contact.ContactActivity;
+import com.capstone.contact.ContactDetailsActivity;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.MainActivity;
 import com.capstone.message.MessageActivity;
@@ -66,6 +69,7 @@ import java.util.Locale;
 public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "EmergencyActivity";
+    private static final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
 
@@ -105,7 +109,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private FirebaseAuth auth;
     private DatabaseReference databaseUser;
     private CircularImageView profilepic;
-    private Button btnPolice;
+    private FloatingActionButton btnPolice, btnCallPolice;
 
     private boolean isContinue = false;
     private boolean isGPS = false;
@@ -180,6 +184,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         loc = findViewById(R.id.lblAddress);
         profilepic = findViewById(R.id.imageView2);
         btnPolice = findViewById(R.id.btnPolice);
+        btnCallPolice = findViewById(R.id.btnPoliceCall);
 
         btnPolice.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,6 +199,36 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 intent.putExtra("AGE", age.getText());
                 intent.putExtra("EMERGENCY", el);
                 startActivity(intent);
+            }
+        });
+
+        //call police
+        btnCallPolice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_CALL);
+                String number = "tel:09051838965"; //kabumble ni cams
+                intent.setData(Uri.parse(number));
+
+                if (ContextCompat.checkSelfPermission(EmergencyActivity.this,
+                        Manifest.permission.CALL_PHONE)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    ActivityCompat.requestPermissions(EmergencyActivity.this,
+                            new String[]{Manifest.permission.CALL_PHONE},
+                            MY_PERMISSIONS_REQUEST_CALL_PHONE);
+
+                    // MY_PERMISSIONS_REQUEST_CALL_PHONE is an
+                    // app-defined int constant. The callback method gets the
+                    // result of the request.
+                } else {
+                    //You already have permission
+                    try {
+                        startActivity(intent);
+                    } catch(SecurityException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
 

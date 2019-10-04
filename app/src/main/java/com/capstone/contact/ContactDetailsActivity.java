@@ -1,8 +1,14 @@
 package com.capstone.contact;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.capstone.login.MainActivity;
 import com.capstone.message.Message;
 import com.capstone.message.MessageActivity;
 import com.capstone.message.MessageContactActivity;
@@ -32,10 +39,12 @@ public class ContactDetailsActivity extends AppCompatActivity {
     private ImageView profileImage;
     //private String cid;
     private FirebaseAuth auth;
-    private Button send;
+    private FloatingActionButton send, call;
     private ImageButton btnDeleteContact;
 
     private String cID, cName, cNumber, cRelationship;
+
+    private static final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +61,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
 //        cid = getIntent().getExtras().get("id").toString();
         databaseUser = FirebaseDatabase.getInstance().getReference("Contacts");
         send = findViewById(R.id.btnSendMessage);
+        call = findViewById(R.id.btnCall);
 //        send.setOnClickListener(new View.OnClickListener()
 //        {
 //            @Override
@@ -119,6 +129,42 @@ public class ContactDetailsActivity extends AppCompatActivity {
         intent.putExtra("numberKey", cNumber);
         intent.putExtra("relationshipKey", cRelationship);
         startActivity(intent);
+    }
+
+    //call
+    public void onClickCall(View view){
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        String number = "tel:" + cNumber;
+        intent.setData(Uri.parse(number));
+
+        if (ContextCompat.checkSelfPermission(ContactDetailsActivity.this,
+                Manifest.permission.CALL_PHONE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(ContactDetailsActivity.this,
+                    new String[]{Manifest.permission.CALL_PHONE},
+                    MY_PERMISSIONS_REQUEST_CALL_PHONE);
+
+            // MY_PERMISSIONS_REQUEST_CALL_PHONE is an
+            // app-defined int constant. The callback method gets the
+            // result of the request.
+        } else {
+            //You already have permission
+            try {
+                startActivity(intent);
+            } catch(SecurityException e) {
+                e.printStackTrace();
+            }
+        }
+
+//        if (ActivityCompat.checkSelfPermission(ContactDetailsActivity.this,
+//                Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
+//        else
+//        {
+//            Toast.makeText(this, "Error in making call.", Toast.LENGTH_LONG);
+//        }
     }
 
     public void onClickDeleteContact(View v){

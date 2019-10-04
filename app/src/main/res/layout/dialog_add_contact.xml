@@ -85,6 +85,7 @@
                     android:id="@+id/et_number"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:inputType="number"
                     android:hint="Contact Number"
                     android:minHeight="@dimen/spacing_xxlarge"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
@@ -93,14 +94,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/spacing_large" />
 
-                <EditText
-                    android:id="@+id/et_relationship"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="Relationship"
-                    android:maxLines="10"
-                    android:minHeight="@dimen/spacing_xxlarge"
-                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+                    android:minHeight="@dimen/spacing_xlarge"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                    android:text="Relationship"/>
+
+                <Spinner
+                    android:id="@+id/spn_relationship"
+                    android:entries="@array/relationship"
+                    android:spinnerMode="dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_large" />
+
 
             </LinearLayout>
 
