@@ -207,7 +207,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_CALL);
-                String number = "tel:09051838965"; //kabumble ni cams
+                String number = "tel:09175047626";
                 intent.setData(Uri.parse(number));
 
                 if (ContextCompat.checkSelfPermission(EmergencyActivity.this,

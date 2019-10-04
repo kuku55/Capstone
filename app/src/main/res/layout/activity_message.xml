@@ -56,13 +56,17 @@
 
             <EditText
                 android:id="@+id/txtMessage"
-                android:layout_width="match_parent"
+                android:layout_width="400dp"
                 android:layout_height="350dp"
+                android:layout_gravity="center"
                 android:gravity="top|left"
-                android:inputType="text"
+                android:inputType="text|textMultiLine"
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/white"
-                android:theme="@style/EditText.White" />
+                android:scrollbars="vertical"
+                android:scrollHorizontally="false"
+                android:lines="15"
+                android:theme="@style/EditText.White"  />
 
             <Button
                 android:id="@+id/btnSend"
