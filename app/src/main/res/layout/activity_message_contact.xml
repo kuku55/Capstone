@@ -31,17 +31,12 @@
                 android:textStyle="bold"
                 android:theme="@style/EditText.White" />
 
-            <EditText
-                android:id="@+id/txtCSubject"
-                android:layout_width="fill_parent"
+            <Spinner
+                android:id="@+id/spnSubject"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="top"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"
-                android:theme="@style/EditText.White"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                tools:layout_editor_absoluteY="0dp" />
+                android:entries="@array/type"
+                style="@style/mySpinnerItemStyle"/>
 
             <TextView
                 android:id="@+id/textView3"

@@ -16,7 +16,7 @@
         <LinearLayout
             android:id="@+id/linearLayout8"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent">
@@ -24,24 +24,17 @@
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Subject"
+                android:text="Type of Crime"
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:theme="@style/EditText.White" />
 
-            <EditText
-                android:id="@+id/txtSubject"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:gravity="top"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"
-                android:theme="@style/EditText.White"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                tools:layout_editor_absoluteY="0dp" />
+            <Spinner
+                android:id="@+id/spnSubject"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/textView3"

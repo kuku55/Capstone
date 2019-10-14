@@ -33,5 +33,9 @@
         <item name="listPreferredItemHeightSmall">60dp</item>
     </style>
 
+    <style name="mySpinnerItemStyle" parent="Base.Widget.AppCompat.Spinner">
+        <item name="android:foregroundTint">@android:color/white</item>
+    </style>
+
 
 </resources>

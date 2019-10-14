@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,7 +50,8 @@ public class MessageContactActivity extends AppCompatActivity {
     private LinearLayout linearLayout;
 
     private String cName, cNumber, cRelationship;
-    private EditText txtCSubject, txtCMessage;
+    private EditText txtCMessage;
+    private Spinner spnType;
     private Button btnCSend, btnCBack;
 
     private FirebaseDatabase firebaseDatabase;
@@ -80,7 +82,7 @@ public class MessageContactActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         linearLayout = findViewById(R.id.linearLayout8);
 
-        txtCSubject = findViewById(R.id.txtCSubject);
+        spnType = findViewById(R.id.spnSubject);
         txtCMessage = findViewById(R.id.txtCMessage);
         btnCSend = findViewById(R.id.btnCSend);
         btnCBack = findViewById(R.id.btnCBack);
@@ -103,7 +105,7 @@ public class MessageContactActivity extends AppCompatActivity {
                 messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
                 uid = auth.getUid();
                 message = txtCMessage.getText().toString().trim();
-                subject = txtCSubject.getText().toString().trim();
+                subject = spnType.getSelectedItem().toString();
                 receiver = cName; //changeable to cID + cName
 
                 JSONObject request = new JSONObject();
@@ -148,7 +150,6 @@ public class MessageContactActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         //snackbar for sending message
-                        txtCSubject.setText("");
                         txtCMessage.setText("");
                         sendSMSMessage();
                         final Snackbar snackbar = Snackbar
