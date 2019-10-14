@@ -1,16 +1,22 @@
 package com.capstone.message;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -22,6 +28,9 @@ import com.capstone.json.MySingleton;
 import com.capstone.location.EmergencyLocation;
 import com.capstone.login.SignUpActivity;
 import com.example.dana.capstone.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -34,12 +43,15 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MessageActivity extends AppCompatActivity {
+    private Context context;
+    private LinearLayout linearLayout;
     private String cid;
     private String uid;
     private String name;
-    private String age;
+    private String age, messageID;
     private EditText message, subject;
     private DatabaseReference databaseMessage;
+    private FirebaseAuth auth;
     private Button send, back;
     private static final String KEY_UID = "uID";
     private static final String KEY_NAME = "name";
@@ -52,6 +64,7 @@ public class MessageActivity extends AppCompatActivity {
     private static final String KEY_LONGITUDE = "longitude";
     private static final String KEY_SUBJECT = "subject";
     private static final String KEY_MESSAGE = "message";
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 1;
 
     private FingerprintManager fingerprintManager;
     private KeyguardManager keyguardManager;
@@ -63,6 +76,9 @@ public class MessageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_message);
 
         fingerprintRead();
+        auth = FirebaseAuth.getInstance();
+
+        linearLayout = findViewById(R.id.linearLayout8);
 
         cid = getIntent().getStringExtra("CONTACT_ID");
         uid = getIntent().getStringExtra("CURRENT_ID");
@@ -87,7 +103,8 @@ public class MessageActivity extends AppCompatActivity {
                 Date c = Calendar.getInstance().getTime();
                 SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                 String presentDate = df.format(c);
-                databaseMessage = FirebaseDatabase.getInstance().getReference().child("Messages").child(uid).child(cid);
+                databaseMessage = FirebaseDatabase.getInstance().getReference();
+                messageID = c + auth.getUid() + "2Police"; //2 == to
                 String pushId = databaseMessage.push().getKey();
                 String msg = message.getText().toString().trim();
                 String sub = subject.getText().toString().trim();
@@ -142,15 +159,53 @@ public class MessageActivity extends AppCompatActivity {
                             });
                     // Access the RequestQueue through your singleton class.
                     MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
-                    finish();
-                }else{
-                    Message mg = new Message(pushId, uid, cid, msg, presentDate, sub, isRead);
-                    databaseMessage.child(pushId).setValue(mg);
-                    Toast.makeText(getBaseContext(), "Message sent!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    //finish();
+
+                    MessageContact mc = new MessageContact(messageID, uid, sub, msg, cid, presentDate);
+                    databaseMessage.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+//                            Toast.makeText(MessageActivity.this, "Message has been sent.", Toast.LENGTH_SHORT).show();
+                            //snackbar for sending message
+                            subject.setText("");
+                            message.setText("");
+                            sendSMSMessage();
+                            final Snackbar snackbar = Snackbar
+                                    .make(linearLayout, "Message sent!",
+                                            Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            //leave empty
+                                        }
+                                    });
+                            snackbar.show();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MessageActivity.this, "There's an error in sending the message, please try again.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
                 }
             }
         });
+    }
+
+    // This Method for Send a message
+    protected void sendSMSMessage() {
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.SEND_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.SEND_SMS},
+                        MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
     }
 
     private void fingerprintRead() {

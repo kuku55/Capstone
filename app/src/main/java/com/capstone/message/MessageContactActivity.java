@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +46,8 @@ import java.util.Locale;
 
 public class MessageContactActivity extends AppCompatActivity {
 
+    private LinearLayout linearLayout;
+
     private String cName, cNumber, cRelationship;
     private EditText txtCSubject, txtCMessage;
     private Button btnCSend, btnCBack;
@@ -54,7 +58,7 @@ public class MessageContactActivity extends AppCompatActivity {
 
     private FingerprintManager fingerprintManager;
     private KeyguardManager keyguardManager;
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 1;
 
     private static final String KEY_UID = "uID";
     private static final String KEY_NAME = "name";
@@ -74,6 +78,7 @@ public class MessageContactActivity extends AppCompatActivity {
         setContentView(R.layout.activity_message_contact);
 
         auth = FirebaseAuth.getInstance();
+        linearLayout = findViewById(R.id.linearLayout8);
 
         txtCSubject = findViewById(R.id.txtCSubject);
         txtCMessage = findViewById(R.id.txtCMessage);
@@ -129,7 +134,7 @@ public class MessageContactActivity extends AppCompatActivity {
                         });
                 // Access the RequestQueue through your singleton class.
                 MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
-                finish();
+//                finish();
 
                 MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, presentDate);
                 if(subject.isEmpty()){
@@ -142,10 +147,19 @@ public class MessageContactActivity extends AppCompatActivity {
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(MessageContactActivity.this, "Message has been sent.", Toast.LENGTH_SHORT).show();
+                        //snackbar for sending message
                         txtCSubject.setText("");
                         txtCMessage.setText("");
                         sendSMSMessage();
+                        final Snackbar snackbar = Snackbar
+                                .make(linearLayout, "Message sent!",
+                                        Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        //leave empty
+                                    }
+                                });
+                        snackbar.show();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
