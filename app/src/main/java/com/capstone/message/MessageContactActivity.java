@@ -161,6 +161,7 @@ public class MessageContactActivity extends AppCompatActivity {
                                     }
                                 });
                         snackbar.show();
+                        finish();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override

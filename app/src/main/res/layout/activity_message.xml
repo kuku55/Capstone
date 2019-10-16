@@ -34,7 +34,9 @@
             <Spinner
                 android:id="@+id/spnSubject"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:entries="@array/type"
+                android:background="@color/white"/>
 
             <TextView
                 android:id="@+id/textView3"
