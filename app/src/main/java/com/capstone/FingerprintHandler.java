@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.CancellationSignal;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -40,9 +43,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class FingerprintHandler extends FingerprintManager.AuthenticationCallback {
@@ -53,6 +58,14 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     private LinearLayout llEmergency;
     private DatabaseReference databaseReference;
     private FusedLocationProviderClient mFusedLocationProviderClient;
+
+    private double wayLatitude = 0.0, wayLongitude = 0.0;
+
+    String address;
+    String city;
+    String state;
+    String country;
+    String postalCode;
 
     public FingerprintHandler(Context context) {
         this.context = context;
@@ -131,18 +144,29 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                     cName = "Police";
                 }
 
+                Address locationAddress=getAddress(location.getLatitude(),location.getLongitude());
+
+                if(locationAddress!=null)
+                {
+                    address = locationAddress.getAddressLine(0);
+                    city = locationAddress.getLocality();
+                    state = locationAddress.getAdminArea();
+                    country = locationAddress.getCountryName();
+                    postalCode = locationAddress.getPostalCode();
+
+                }
+
                 Date currentTime = Calendar.getInstance().getTime();
                 SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                 String presentDate = df.format(currentTime);
                 String messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
                 String uid = auth.getUid();
-                String message = "Latitude: " + latValue + " Longitude: " + longValue;
+                String message = address + "\nLatitude: " + latValue + " Longitude: " + longValue;
                 String subject = "EMERGENCY";
                 String receiver = cName; //changeable to cID + cName
                 String isRead = "unread";
 
                 if(cName == "Police"){
-                    EmergencyLocation el = (EmergencyLocation) ((Activity)context).getIntent().getSerializableExtra("EMERGENCY");
 
                     JSONObject request = new JSONObject();
                     try {
@@ -151,14 +175,15 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                         request.put(KEY_NAME, cName);
                         request.put(KEY_MESSAGE, message);
                         request.put(KEY_SUBJECT, subject);
-//                        request.put(KEY_ADDRESS, el.getAddress());
-//                        request.put(KEY_CITY, el.getCity());
-//                        request.put(KEY_STATE, el.getState());
-//                        request.put(KEY_COUNTRY, el.getCountry());
-//                        request.put(KEY_POSTAL, el.getPostalCode());
-//                        request.put(KEY_STATE, el.getState());
-//                        request.put(KEY_LATITUDE, el.getLatitude());
-//                        request.put(KEY_LONGITUDE, el.getLongitude());
+                        request.put(KEY_ADDRESS, address);
+                        request.put(KEY_CITY, city);
+                        request.put(KEY_STATE, state);
+                        request.put(KEY_COUNTRY, country);
+                        request.put(KEY_POSTAL, postalCode);
+                        request.put(KEY_STATE, state);
+                        request.put(KEY_LATITUDE, latValue);
+                        request.put(KEY_LONGITUDE, longValue);
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -190,7 +215,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 
                         //snackbar for sending message
                         final Snackbar snackbar = Snackbar
-                                .make(((Activity) context).findViewById(R.id.ll_emergency), "Message sent!",
+                                .make(((Activity) context).findViewById(R.id.linearLayout8), "Message sent!",
                                         Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -203,21 +228,10 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-//                        Toast.makeText(context, "There's an error in sending the message, please try again.\n" + e.toString(),
-//                                Toast.LENGTH_LONG).show();
-                        //snackbar for error in sending message
-                        final Snackbar snackbar = Snackbar
-                                .make(((Activity) context).findViewById(R.id.ll_emergency),
-                                        "There's an error in sending the message, please try again.",
-                                        Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        //leave empty
-                                    }
-                                });
-                        snackbar.show();
-                    }
-                });
+                        Toast.makeText(context, "There's an error in sending the message, please try again.\n" + e.toString(),
+                                Toast.LENGTH_LONG).show();
+            }
+        });
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -238,4 +252,23 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 //        }
 
     }
+
+    public Address getAddress(double latitude, double longitude)
+    {
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(context, Locale.getDefault());
+
+        try {
+            addresses = geocoder.getFromLocation(latitude,longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+            return addresses.get(0);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
+    }
+
 }

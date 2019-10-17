@@ -111,6 +111,8 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private CircularImageView profilepic;
     private FloatingActionButton btnPolice, btnCallPolice;
 
+    String currentLocation;
+
     private boolean isContinue = false;
     private boolean isGPS = false;
 
@@ -123,7 +125,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         setContentView(R.layout.activity_emergency);
 
         CheckPermission(); //check location permission
-        fingerprintRead();
+
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         dl = findViewById(R.id.activity_emergency);
@@ -189,7 +191,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
         btnPolice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getBaseContext(), MessageActivity.class);
+                Intent intent = new Intent(EmergencyActivity.this, MessageActivity.class);
                 String lat = String.valueOf(wayLatitude);
                 String lon = String.valueOf(wayLongitude);
                 EmergencyLocation el = new EmergencyLocation(address, city, state, country, postalCode, lat, lon);
@@ -231,6 +233,8 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 }
             }
         });
+
+        fingerprintRead();
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -308,6 +312,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curL, 18)); //18 zoom-in
                     getAddressDetails();
+
                 }
             }
         });
@@ -334,17 +339,15 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     public void getAddressDetails()
     {
 
-        Address locationAddress=getAddress(wayLatitude,wayLongitude);
+        Address locationAddress = getAddress(wayLatitude, wayLongitude);
 
-        if(locationAddress!=null)
+        if(locationAddress!= null)
         {
             address = locationAddress.getAddressLine(0);
             city = locationAddress.getLocality();
             state = locationAddress.getAdminArea();
             country = locationAddress.getCountryName();
             postalCode = locationAddress.getPostalCode();
-
-            String currentLocation;
 
             if(!TextUtils.isEmpty(address))
             {
@@ -369,9 +372,10 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                 if (!TextUtils.isEmpty(country))
                     currentLocation+="\n"+country;
 
-                loc.setText(currentLocation);
+                loc.setText(address);
+            }else{
+                Toast.makeText(EmergencyActivity.this, "Please turn on location.", Toast.LENGTH_LONG).show();
             }
-
         }
 
     }
@@ -386,6 +390,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
     private void fingerprintRead() {
         //checks if SDK is Marshmallow or above
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 
             fingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
@@ -408,7 +413,11 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
 
                 Toast.makeText(this, "Add a fingerprint in the device.", Toast.LENGTH_LONG).show();
 
-            } else {
+            }else if(loc.toString().equals("Location")){
+                Toast.makeText(this, "Please turn on location", Toast.LENGTH_LONG).show();
+            }
+            else {
+
 
                 FingerprintHandler fingerprintHandler = new FingerprintHandler(this);
                 fingerprintHandler.startAuth(fingerprintManager, null);

@@ -5,6 +5,7 @@ import android.app.KeyguardManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -13,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +31,7 @@ import com.capstone.FingerprintHandler;
 import com.capstone.contact.Contact;
 import com.capstone.contact.ContactDetailsActivity;
 import com.capstone.json.MySingleton;
+import com.capstone.login.MainActivity;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -64,6 +67,7 @@ public class MessageContactActivity extends AppCompatActivity {
 
     private static final String KEY_UID = "uID";
     private static final String KEY_NAME = "name";
+    private static final String KEY_NUMBER ="number";
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_SUBJECT = "subject";
 
@@ -146,6 +150,10 @@ public class MessageContactActivity extends AppCompatActivity {
                 if(message.isEmpty()){
                     message = "Emergency at " + currentTime + presentDate;
                 }
+
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(cNumber, null, subject + ": " + message, null, null);
+
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -161,7 +169,6 @@ public class MessageContactActivity extends AppCompatActivity {
                                     }
                                 });
                         snackbar.show();
-                        finish();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
