@@ -207,6 +207,8 @@ public class ContactActivity extends AppCompatActivity {
         dialog.getWindow().setAttributes(lp);
     }
 
+
+
     public void onClickContact(View view){
         startActivity(new Intent(this, ContactDetailsActivity.class));
     }

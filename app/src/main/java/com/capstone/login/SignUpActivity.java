@@ -149,110 +149,150 @@ public class SignUpActivity extends AppCompatActivity{
                     return;
                 }
 
-                if (TextUtils.isEmpty(lname)) {
+                else if (TextUtils.isEmpty(fname)) {
                     Toast.makeText(getApplicationContext(), "Enter last name!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (TextUtils.isEmpty(dob)) {
+                else if (TextUtils.isEmpty(lname)) {
+                    Toast.makeText(getApplicationContext(), "Enter last name!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                else if (TextUtils.isEmpty(dob)) {
                     Toast.makeText(getApplicationContext(), "Choose Date of Birth!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (TextUtils.isEmpty(password)) {
+                else if (TextUtils.isEmpty(password)) {
                     Toast.makeText(getApplicationContext(), "Enter password!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (password.length() < 6) {
+                else if (password.length() < 6) {
                     Toast.makeText(getApplicationContext(), "Password too short, enter minimum 6 characters!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (TextUtils.isEmpty(number)) {
+                else if (TextUtils.isEmpty(number)) {
                     Toast.makeText(getApplicationContext(), "Enter mobile number!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
+                else {
 
-                progressBar.setVisibility(View.VISIBLE);
-                //create user
-                auth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                databaseUser = FirebaseDatabase.getInstance().getReference();
-                                    final String id = auth.getInstance().getCurrentUser().getUid();
-                                    String defaultImage = "https://firebasestorage.googleapis.com/v0/b/capstone-cc2de.appspot.com/o/profilepics%2Fgeneric-profile.png?alt=media&token=bfda0283-3821-45eb-ac49-4e9c02a41e42";
-                                    User user = new User(id, fname, lname, gender, dob, number, email, defaultImage);
-                                    databaseUser.child("Users").child(id).setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void aVoid) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    //create user
+                    btnSignUp.setEnabled(false);
+                    btnSignIn.setEnabled(false);
+                    inputFirstname.setEnabled(false);
+                    inputLastname.setEnabled(false);
+                    inputEmail.setEnabled(false);
+                    inputPassword.setEnabled(false);
+                    inputBirth.setEnabled(false);
+                    inputnumber.setEnabled(false);
 
-                                            JSONObject request = new JSONObject();
-                                            try {
-                                                //Populate the request parameters
-                                                request.put(KEY_UID, id);
-                                                request.put(KEY_EMAIL, email);
-                                                request.put(KEY_FIRST_NAME, fname);
-                                                request.put(KEY_LAST_NAME, lname);
-                                                request.put(KEY_GENDER, gender);
-                                                request.put(KEY_DOB, dob);
-                                                request.put(KEY_MOBILE, number);
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
+                    auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    databaseUser = FirebaseDatabase.getInstance().getReference();
+
+                                    if (!task.isSuccessful()) {
+                                        Toast.makeText(SignUpActivity.this, "Authentication failed." + task.getException(),
+                                                Toast.LENGTH_SHORT).show();
+
+                                        btnSignUp.setEnabled(true);
+                                        btnSignIn.setEnabled(true);
+                                        inputFirstname.setEnabled(true);
+                                        inputLastname.setEnabled(true);
+                                        inputEmail.setEnabled(true);
+                                        inputPassword.setEnabled(true);
+                                        inputBirth.setEnabled(true);
+                                        inputnumber.setEnabled(true);
+                                        progressBar.setVisibility(View.GONE);
+
+                                    } else {
+                                        //startActivity(new Intent(SignUpActivity.this, EmergencyActivity.class));
+                                        FirebaseUser fUser = auth.getCurrentUser();
+
+                                        final String id = auth.getInstance().getCurrentUser().getUid();
+                                        String defaultImage = "https://firebasestorage.googleapis.com/v0/b/capstone-cc2de.appspot.com/o/profilepics%2Fgeneric-profile.png?alt=media&token=bfda0283-3821-45eb-ac49-4e9c02a41e42";
+                                        User user = new User(id, fname, lname, gender, dob, number, email, defaultImage);
+                                        databaseUser.child("Users").child(id).setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+
+                                                JSONObject request = new JSONObject();
+                                                try {
+                                                    //Populate the request parameters
+                                                    request.put(KEY_UID, id);
+                                                    request.put(KEY_EMAIL, email);
+                                                    request.put(KEY_FIRST_NAME, fname);
+                                                    request.put(KEY_LAST_NAME, lname);
+                                                    request.put(KEY_GENDER, gender);
+                                                    request.put(KEY_DOB, dob);
+                                                    request.put(KEY_MOBILE, number);
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                String register_url = "https://e-ligtas.000webhostapp.com/json/register.php";
+                                                JsonObjectRequest jsArrayRequest = new JsonObjectRequest
+                                                        (Request.Method.POST, register_url, request, new Response.Listener<JSONObject>() {
+                                                            @Override
+                                                            public void onResponse(JSONObject response) {
+                                                                Log.d(TAG, "Account created.");
+                                                            }
+                                                        }, new Response.ErrorListener() {
+
+                                                            @Override
+                                                            public void onErrorResponse(VolleyError error) {
+                                                                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+
+                                                            }
+                                                        });
+                                                // Access the RequestQueue through your singleton class.
+                                                MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
+                                                progressBar.setVisibility(View.GONE);
                                             }
-                                            String register_url = "https://e-ligtas.000webhostapp.com/json/register.php";
-                                            JsonObjectRequest jsArrayRequest = new JsonObjectRequest
-                                                    (Request.Method.POST, register_url, request, new Response.Listener<JSONObject>() {
-                                                        @Override
-                                                        public void onResponse(JSONObject response) {
-                                                            Log.d(TAG, "Account created.");
-                                                        }
-                                                    }, new Response.ErrorListener() {
-
-                                                        @Override
-                                                        public void onErrorResponse(VolleyError error) {
-                                                            Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-
-                                                        }
-                                                    });
-                                            // Access the RequestQueue through your singleton class.
-                                            MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
-                                            progressBar.setVisibility(View.GONE);
-                                        }
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Toast.makeText(SignUpActivity.this, e.toString(), Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-
-                                // If sign in fails, display a message to the user. If sign in succeeds
-                                // the auth state listener will be notified and logic to handle the
-                                // signed in user can be handled in the listener.
-                                if (!task.isSuccessful()) {
-                                    Toast.makeText(SignUpActivity.this, "Authentication failed." + task.getException(),
-                                            Toast.LENGTH_SHORT).show();
-                                } else {
-                                    //startActivity(new Intent(SignUpActivity.this, EmergencyActivity.class));
-                                    FirebaseUser fUser = auth.getCurrentUser();
-                                    fUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()){
-                                                Toast.makeText(SignUpActivity.this, "An e-mail has been sent. " +
-                                                        "Please verify your account to continue.", Toast.LENGTH_SHORT).show();
-                                                finish();
-                                            }else{
-                                                Toast.makeText(SignUpActivity.this, "Something went wrong." +
-                                                        task.getException(), Toast.LENGTH_SHORT).show();
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Toast.makeText(SignUpActivity.this, e.toString(), Toast.LENGTH_LONG).show();
                                             }
-                                        }
-                                    });
+                                        });
+
+                                        // If sign in fails, display a message to the user. If sign in succeeds
+                                        // the auth state listener will be notified and logic to handle the
+                                        // signed in user can be handled in the listener.
+
+                                        fUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    Toast.makeText(SignUpActivity.this, "An e-mail has been sent. " +
+                                                            "Please verify your account to continue.", Toast.LENGTH_SHORT).show();
+                                                    finish();
+                                                } else {
+                                                    Toast.makeText(SignUpActivity.this, "Something went wrong." +
+                                                            task.getException(), Toast.LENGTH_SHORT).show();
+
+                                                    btnSignUp.setEnabled(true);
+                                                    btnSignIn.setEnabled(true);
+                                                    inputFirstname.setEnabled(true);
+                                                    inputLastname.setEnabled(true);
+                                                    inputEmail.setEnabled(true);
+                                                    inputPassword.setEnabled(true);
+                                                    inputBirth.setEnabled(true);
+                                                    inputnumber.setEnabled(true);
+                                                    progressBar.setVisibility(View.GONE);
+                                                }
+                                            }
+                                        });
+                                    }
                                 }
-                            }
-                        });
+                            });
+                }
 
             }
         });

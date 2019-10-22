@@ -105,6 +105,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     private DrawerLayout dl;
     private ActionBarDrawerToggle t;
     private NavigationView nv;
+    private FirebaseUser firebaseUser;
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth;
     private DatabaseReference databaseUser;
@@ -260,23 +261,32 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     public void onStart() {
         super.onStart();
         auth.addAuthStateListener(authListener);
-        databaseUser.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                name.setText(getString(R.string.full_name, user.getUserFirstName(), user.getUserLastName()));
-                //age.setText(calcAge(user.getDob()));
-                age.setText(user.getDob());
-                gender.setText(user.getGender());
-                String profile = user.getImage();
-                Picasso.with(EmergencyActivity.this).load(profile).fit().centerCrop().into(profilepic);
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        firebaseUser = auth.getCurrentUser();
 
-            }
-        });
+        if(!firebaseUser.isEmailVerified()){
+            Toast.makeText(this, "User is not signed in. Please sign-in.", Toast.LENGTH_LONG).show();
+            signOut();
+        }else {
+
+            databaseUser.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    name.setText(getString(R.string.full_name, user.getUserFirstName(), user.getUserLastName()));
+                    //age.setText(calcAge(user.getDob()));
+                    age.setText(user.getDob());
+                    gender.setText(user.getGender());
+                    String profile = user.getImage();
+                    Picasso.with(EmergencyActivity.this).load(profile).fit().centerCrop().into(profilepic);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
     public void onMapReady(GoogleMap map) {
