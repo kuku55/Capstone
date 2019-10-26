@@ -76,17 +76,6 @@
                 android:textSize="15sp"
                 android:theme="@style/EditText.White" />
 
-            <Button
-                android:id="@+id/btnCBack"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="50dp"
-                android:background="@drawable/round_rect_shape"
-                android:text="@string/action_back"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"
-                android:textSize="15sp"
-                android:theme="@style/EditText.White" />
 
         </LinearLayout>
     </ScrollView>

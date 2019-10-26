@@ -31,6 +31,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -150,7 +151,7 @@ public class SignUpActivity extends AppCompatActivity{
                 }
 
                 else if (TextUtils.isEmpty(fname)) {
-                    Toast.makeText(getApplicationContext(), "Enter last name!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Enter first name!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -216,6 +217,17 @@ public class SignUpActivity extends AppCompatActivity{
                                         //startActivity(new Intent(SignUpActivity.this, EmergencyActivity.class));
                                         FirebaseUser fUser = auth.getCurrentUser();
 
+                                        UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder().setDisplayName(fname + " " + lname).build();
+
+                                        fUser.updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                               if(task.isSuccessful()){
+                                                   Log.d(TAG, "Updated.");
+                                               }
+                                            }
+                                        });
+
                                         final String id = auth.getInstance().getCurrentUser().getUid();
                                         String defaultImage = "https://firebasestorage.googleapis.com/v0/b/capstone-cc2de.appspot.com/o/profilepics%2Fgeneric-profile.png?alt=media&token=bfda0283-3821-45eb-ac49-4e9c02a41e42";
                                         User user = new User(id, fname, lname, gender, dob, number, email, defaultImage);
@@ -253,6 +265,7 @@ public class SignUpActivity extends AppCompatActivity{
                                                         });
                                                 // Access the RequestQueue through your singleton class.
                                                 MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
+
                                                 progressBar.setVisibility(View.GONE);
                                             }
                                         }).addOnFailureListener(new OnFailureListener() {

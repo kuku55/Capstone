@@ -52,7 +52,7 @@ public class MessageContactActivity extends AppCompatActivity {
 
     private LinearLayout linearLayout;
 
-    private String cName, cNumber, cRelationship;
+    private String cName, cNumber, cRelationship, cLocation;
     private EditText txtCMessage;
     private Spinner spnType;
     private Button btnCSend, btnCBack;
@@ -89,11 +89,12 @@ public class MessageContactActivity extends AppCompatActivity {
         spnType = findViewById(R.id.spnSubject);
         txtCMessage = findViewById(R.id.txtCMessage);
         btnCSend = findViewById(R.id.btnCSend);
-        btnCBack = findViewById(R.id.btnCBack);
+//        btnCBack = findViewById(R.id.btnCBack);
 
         cName = getIntent().getStringExtra("nameKey");
         cNumber = getIntent().getStringExtra("numberKey");
         cRelationship = getIntent().getStringExtra("relationshipKey");
+        cLocation = getIntent().getStringExtra("locationKey");
 
 
         fingerprintRead();
@@ -148,11 +149,11 @@ public class MessageContactActivity extends AppCompatActivity {
                 }
 
                 if(message.isEmpty()){
-                    message = "Emergency at " + currentTime + presentDate;
+                    message = "Emergency at ";
                 }
 
                 SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(cNumber, null, subject + ": " + message, null, null);
+                smsManager.sendTextMessage(cNumber, null, subject + ": " + message + "\n333 Sen. Gil Puyat Avenue, Makati City, 1200, Metro Manila, Philippines\n" + currentTime + presentDate, null, null);
 
                 databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -180,16 +181,16 @@ public class MessageContactActivity extends AppCompatActivity {
             }
         });
 
-        btnCBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MessageContactActivity.this, ContactDetailsActivity.class);
-                intent.putExtra("nameKey", cName);
-                intent.putExtra("numberKey", cNumber);
-                intent.putExtra("relationshipKey", cRelationship);
-                startActivity(intent);
-            }
-        });
+//        btnCBack.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(MessageContactActivity.this, ContactDetailsActivity.class);
+//                intent.putExtra("nameKey", cName);
+//                intent.putExtra("numberKey", cNumber);
+//                intent.putExtra("relationshipKey", cRelationship);
+//                startActivity(intent);
+//            }
+//        });
     }
 
     private void fingerprintRead() {

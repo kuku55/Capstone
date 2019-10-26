@@ -34,6 +34,7 @@ import com.example.dana.capstone.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -60,6 +61,7 @@ public class MessageActivity extends AppCompatActivity{
     private LinearLayout linearLayout;
 
     private DatabaseReference databaseMessage;
+    private FirebaseUser firebaseUser;
     private FirebaseAuth auth;
     private Button send, back;
     private static final String KEY_UID = "uID";
@@ -143,6 +145,7 @@ public class MessageActivity extends AppCompatActivity{
                 }
 
                 if(cid.equals("Police")){
+                    firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                     name = getIntent().getStringExtra("NAME");
                     age = getIntent().getStringExtra("AGE");
                     EmergencyLocation el = (EmergencyLocation) getIntent().getSerializableExtra("EMERGENCY");
@@ -151,7 +154,7 @@ public class MessageActivity extends AppCompatActivity{
                     try {
                         //Populate the request parameters
                         request.put(KEY_UID, uid);
-                        request.put(KEY_NAME,name);
+                        request.put(KEY_NAME, firebaseUser.getDisplayName());
                         request.put(KEY_MESSAGE, msg);
                         request.put(KEY_SUBJECT, sub);
                         request.put(KEY_ADDRESS, el.getAddress());

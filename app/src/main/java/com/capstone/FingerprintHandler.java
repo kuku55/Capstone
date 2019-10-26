@@ -37,6 +37,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -56,6 +57,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     private FirebaseAuth auth;
     private String cName, cNumber, cRelationship;
     private LinearLayout llEmergency;
+    private FirebaseUser firebaseUser;
     private DatabaseReference databaseReference;
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
@@ -98,6 +100,8 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     @Override
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -172,7 +176,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
                     try {
                         //Populate the request parameters
                         request.put(KEY_UID, uid);
-                        request.put(KEY_NAME, cName);
+                        request.put(KEY_NAME, firebaseUser.getDisplayName());
                         request.put(KEY_MESSAGE, message);
                         request.put(KEY_SUBJECT, subject);
                         request.put(KEY_ADDRESS, address);

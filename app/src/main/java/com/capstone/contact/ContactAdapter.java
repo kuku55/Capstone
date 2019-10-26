@@ -1,6 +1,7 @@
 package com.capstone.contact;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +17,7 @@ import java.util.List;
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHolder> {
 
     private List<Contact> contactsList;
-    String conID, conName, conNumber, conRelationship;
+    String conID, conName, conNumber, conRelationship, conLocation, cLocation;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name, number, relationship;
@@ -60,10 +61,12 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.MyViewHo
                 conRelationship = con.getRelationship();
 
                 Intent intent = new Intent(v.getContext(), ContactDetailsActivity.class);
+//                cLocation = intent.getStringExtra("locationKey");
                 intent.putExtra("idKey", conID);
                 intent.putExtra("nameKey", conName);
                 intent.putExtra("numberKey", conNumber);
                 intent.putExtra("relationshipKey", conRelationship);
+//                intent.putExtra("locationKey", cLocation);
                 v.getContext().startActivity(intent);
             }
         });

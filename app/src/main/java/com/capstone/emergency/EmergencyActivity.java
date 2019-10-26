@@ -102,6 +102,7 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
     String state = "state";
     String country = "country";
     String postalCode = "postalCode";
+    String cLocation = "locationKey";
     private DrawerLayout dl;
     private ActionBarDrawerToggle t;
     private NavigationView nv;
@@ -148,8 +149,12 @@ public class EmergencyActivity extends AppCompatActivity implements OnMapReadyCa
                         dl.closeDrawers();
                         break;
                     case R.id.contacts:
-                        startActivity(new Intent(EmergencyActivity.this, ContactActivity.class)
-                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+//                        startActivity(new Intent(EmergencyActivity.this, ContactActivity.class)
+//                                .addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION));
+                        cLocation = getIntent().getStringExtra("locationKey");
+                        Intent intent = new Intent(EmergencyActivity.this, ContactActivity.class);
+                        intent.putExtra("locationKey", loc.toString());
+                        startActivity(intent);
                         dl.closeDrawers();
                         break;
                     case R.id.profile:
