@@ -5,6 +5,9 @@ import android.app.KeyguardManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -14,6 +17,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,10 +34,17 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.capstone.FingerprintHandler;
 import com.capstone.contact.Contact;
 import com.capstone.contact.ContactDetailsActivity;
+import com.capstone.emergency.EmergencyActivity;
 import com.capstone.json.MySingleton;
 import com.capstone.login.MainActivity;
 import com.capstone.user.User;
 import com.example.dana.capstone.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,9 +54,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MessageContactActivity extends AppCompatActivity {
@@ -77,11 +90,16 @@ public class MessageContactActivity extends AppCompatActivity {
     private String message;
     private String subject;
     private String receiver;
+    private String address, city, state, postalCode, country, currentLocation;
+
+    private FusedLocationProviderClient mFusedLocationProviderClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message_contact);
+
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         auth = FirebaseAuth.getInstance();
         linearLayout = findViewById(R.id.linearLayout8);
@@ -104,93 +122,165 @@ public class MessageContactActivity extends AppCompatActivity {
             public void onClick(View v) {
                 databaseReference = FirebaseDatabase.getInstance().getReference();
 
-                currentTime = Calendar.getInstance().getTime();
-                SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
-                String presentDate = df.format(currentTime);
-                messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
-                uid = auth.getUid();
-                message = txtCMessage.getText().toString().trim();
-                subject = spnType.getSelectedItem().toString();
-                receiver = cName; //changeable to cID + cName
-
-                JSONObject request = new JSONObject();
-                try {
-                    //Populate the request parameters
-                    request.put(KEY_UID, uid);
-                    request.put(KEY_NAME, cName);
-                    request.put(KEY_MESSAGE, message);
-                    request.put(KEY_SUBJECT, subject);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Toast.makeText(MessageContactActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                if (ActivityCompat.checkSelfPermission(MessageContactActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                        ActivityCompat.checkSelfPermission(MessageContactActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                                PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
                 }
-                String register_url = "https://e-ligtas.000webhostapp.com/json/emergency.php";
-                JsonObjectRequest jsArrayRequest = new JsonObjectRequest
-                        (Request.Method.POST, register_url, request, new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                Toast.makeText(getApplicationContext(), "Emergency Sent", Toast.LENGTH_SHORT).show();
-                            }
-                        }, new Response.ErrorListener() {
-
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-
-                            }
-                        });
-                // Access the RequestQueue through your singleton class.
-                MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
-//                finish();
-
-                MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, presentDate);
-                if(subject.isEmpty()){
-                    subject = "Emergency";
-                }
-
-                if(message.isEmpty()){
-                    message = "Emergency at ";
-                }
-
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(cNumber, null, subject + ": " + message + "\n333 Sen. Gil Puyat Avenue, Makati City, 1200, Metro Manila, Philippines\n" + currentTime + presentDate, null, null);
-
-                databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
+                mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        //snackbar for sending message
-                        txtCMessage.setText("");
-                        sendSMSMessage();
-                        final Snackbar snackbar = Snackbar
-                                .make(linearLayout, "Message sent!",
-                                        Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        //leave empty
+                    public void onSuccess(Location location) {
+                        if(location != null) {
+//                            LatLng curL = new LatLng(location.getLatitude(), location.getLongitude());
+                            Address locationAddress = getAddress(location.getLatitude(), location.getLongitude());
+
+                            if(locationAddress!= null)
+                            {
+                                address = locationAddress.getAddressLine(0);
+                                city = locationAddress.getLocality();
+                                state = locationAddress.getAdminArea();
+                                country = locationAddress.getCountryName();
+                                postalCode = locationAddress.getPostalCode();
+
+                                if(!TextUtils.isEmpty(address))
+                                {
+                                    currentLocation = address;
+
+                                    if (!TextUtils.isEmpty(city))
+                                    {
+                                        currentLocation+="\n"+city;
+
+                                        if (!TextUtils.isEmpty(postalCode))
+                                            currentLocation+=" - "+postalCode;
                                     }
-                                });
-                        snackbar.show();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(MessageContactActivity.this, "There's an error in sending the message, please try again.",
-                                Toast.LENGTH_LONG).show();
+                                    else
+                                    {
+                                        if (!TextUtils.isEmpty(postalCode))
+                                            currentLocation+="\n"+postalCode;
+                                    }
+
+                                    if (!TextUtils.isEmpty(state)) {
+                                        currentLocation += "\n" + state;
+                                    }
+
+                                    if (!TextUtils.isEmpty(country)) {
+                                        currentLocation += "\n" + country;
+                                    }
+
+                                    currentTime = Calendar.getInstance().getTime();
+                                    SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+                                    String presentDate = df.format(currentTime);
+                                    messageID = currentTime + auth.getUid() + "2" + cName; //2 == to
+                                    uid = auth.getUid();
+                                    message = txtCMessage.getText().toString().trim();
+                                    subject = spnType.getSelectedItem().toString();
+                                    receiver = cName; //changeable to cID + cName
+
+                                    JSONObject request = new JSONObject();
+                                    try {
+                                        //Populate the request parameters
+                                        request.put(KEY_UID, uid);
+                                        request.put(KEY_NAME, cName);
+                                        request.put(KEY_MESSAGE, message);
+                                        request.put(KEY_SUBJECT, subject);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(MessageContactActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                                    }
+                                    String register_url = "https://e-ligtas.000webhostapp.com/json/emergency.php";
+                                    JsonObjectRequest jsArrayRequest = new JsonObjectRequest
+                                            (Request.Method.POST, register_url, request, new Response.Listener<JSONObject>() {
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    Toast.makeText(getApplicationContext(), "Emergency Sent", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }, new Response.ErrorListener() {
+
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+                                                    Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+
+                                                }
+                                            });
+                                    // Access the RequestQueue through your singleton class.
+                                    MySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsArrayRequest);
+
+                                    MessageContact mc = new MessageContact(messageID, uid, subject, message, receiver, presentDate);
+                                    if(subject.isEmpty()){
+                                        subject = "Emergency";
+                                    }
+
+                                    if(message.isEmpty()){
+                                        message = "Emergency at ";
+                                    }
+
+                                    SmsManager smsManager = SmsManager.getDefault();
+                                    smsManager.sendTextMessage(cNumber, null, subject + ": " + message + "\n" + address + "\n" + currentTime + presentDate, null, null);
+
+                                    databaseReference.child("Messages").child(messageID).setValue(mc).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            //snackbar for sending message
+                                            txtCMessage.setText("");
+                                            sendSMSMessage();
+                                            final Snackbar snackbar = Snackbar
+                                                    .make(linearLayout, "Message sent!",
+                                                            Snackbar.LENGTH_INDEFINITE).setAction("Close", new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View v) {
+                                                            //leave empty
+                                                        }
+                                                    });
+                                            snackbar.show();
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(MessageContactActivity.this, "There's an error in sending the message, please try again.",
+                                                    Toast.LENGTH_LONG).show();
+                                        }
+                                    });
+
+
+                                }else{
+                                    Toast.makeText(MessageContactActivity.this, "Please turn on location.", Toast.LENGTH_LONG).show();
+                                }
+                            }
+
+
+                        }
                     }
                 });
+
+
             }
         });
 
-//        btnCBack.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(MessageContactActivity.this, ContactDetailsActivity.class);
-//                intent.putExtra("nameKey", cName);
-//                intent.putExtra("numberKey", cNumber);
-//                intent.putExtra("relationshipKey", cRelationship);
-//                startActivity(intent);
-//            }
-//        });
+    }
+
+    public Address getAddress(double latitude, double longitude)
+    {
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(this, Locale.getDefault());
+
+        try {
+            addresses = geocoder.getFromLocation(latitude,longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+            return addresses.get(0);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
     }
 
     private void fingerprintRead() {

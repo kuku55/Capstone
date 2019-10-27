@@ -217,6 +217,7 @@ public class SignUpActivity extends AppCompatActivity{
                                         //startActivity(new Intent(SignUpActivity.this, EmergencyActivity.class));
                                         FirebaseUser fUser = auth.getCurrentUser();
 
+                                        //puts display name in a firebase profile, used to get name for later
                                         UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder().setDisplayName(fname + " " + lname).build();
 
                                         fUser.updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
